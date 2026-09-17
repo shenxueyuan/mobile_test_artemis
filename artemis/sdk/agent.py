@@ -261,9 +261,7 @@ class Agent:
             device_id=device_id, platform=platform
         )
         logger.info(self._device_context.to_str())
-        publish_startup_progress(
-            "device_ready", "Android 设备已连接", session_id=self._session_id
-        )
+        publish_startup_progress("device_ready", "Android 设备已连接", session_id=self._session_id)
 
         # Asynchronously pre-warm LLM connection pools in the background
         asyncio.create_task(self._prewarm_llm_connections(api_key))
@@ -281,9 +279,7 @@ class Agent:
                 "model_ready", "模型连接已就绪（模拟 LLM）", session_id=self._session_id
             )
             return
-        publish_startup_progress(
-            "model_warmup", "正在预热模型连接", session_id=self._session_id
-        )
+        publish_startup_progress("model_warmup", "正在预热模型连接", session_id=self._session_id)
         logger.info("Starting background pre-warming of Gemini API connection pools...")
         try:
             key = api_key
@@ -295,7 +291,8 @@ class Agent:
                 publish_startup_progress(
                     "model_ready",
                     "模型连接将在首次使用时初始化",
-                    session_id=self._session_id,                )
+                    session_id=self._session_id,
+                )
                 return
 
             # 1. Pre-warm Native SDK client
@@ -311,9 +308,7 @@ class Agent:
                 return_exceptions=True,
             )
             logger.success("Gemini API connection pools successfully pre-warmed.")
-            publish_startup_progress(
-                "model_ready", "模型连接已就绪", session_id=self._session_id
-            )
+            publish_startup_progress("model_ready", "模型连接已就绪", session_id=self._session_id)
         except Exception as e:
             logger.warning(f"Failed to pre-warm LLM connections: {e}")
             publish_startup_progress(
@@ -645,9 +640,7 @@ class Agent:
                     if self._ui_adb_client is not None:
                         await self._connect_screen_client(context, str(sess_id))
                     await self._ensure_device_unlocked()
-                publish_startup_progress(
-                    "environment", "正在准备设备环境", session_id=str(sess_id)
-                )
+                publish_startup_progress("environment", "正在准备设备环境", session_id=str(sess_id))
                 await self._prepare_app_installation(task=task)
                 await self._prepare_device_environment(context=context)
                 await self._prepare_app_lock(task=task, context=context)
@@ -1294,17 +1287,14 @@ class Agent:
             previous_client, listener = previous_listener
             previous_client.remove_backend_listener(listener)
             self._hierarchy_backend_listener = None
-        publish_startup_progress(
-            "uiautomator", "正在连接 UI 层级服务", session_id=session_id
-        )
+        publish_startup_progress("uiautomator", "正在连接 UI 层级服务", session_id=session_id)
 
         def on_provision(event: str, details: dict) -> None:
             version = details.get("version_name") or details.get("to_version")
             if event == "installing":
                 publish_startup_progress(
                     "helper_install",
-                    "正在为该设备首次安装 Artemis 无障碍助手 "
-                    f"(v{version}，约 3 秒)",
+                    f"正在为该设备首次安装 Artemis 无障碍助手 (v{version}，约 3 秒)",
                     session_id=session_id,
                     **details,
                 )

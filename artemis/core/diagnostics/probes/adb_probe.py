@@ -381,9 +381,7 @@ class AdbDeviceProbe(BaseProbe):
                 status=ProbeStatus.WARN,
                 is_blocker=self.is_blocker,
                 summary="锁屏状态未知",
-                description=(
-                    "ADB 未能在超时时间内响应，无法确认 Android 锁屏状态。"
-                ),
+                description=("ADB 未能在超时时间内响应，无法确认 Android 锁屏状态。"),
                 metadata={"installed": True, "submission_probe": True},
             )
 
@@ -720,7 +718,9 @@ class AdbDeviceProbe(BaseProbe):
             if key_status.is_corrupted:
                 desc += f" 警告：检测到损坏的 ADB RSA 密钥（{key_status.error_reason}）。"
             if installed_avds:
-                desc += f" 发现 {len(installed_avds)} 个已安装的模拟器：{', '.join(installed_avds)}。"
+                desc += (
+                    f" 发现 {len(installed_avds)} 个已安装的模拟器：{', '.join(installed_avds)}。"
+                )
 
             return ProbeResult(
                 id=self.probe_id,

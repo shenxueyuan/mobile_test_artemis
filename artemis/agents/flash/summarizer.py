@@ -36,7 +36,12 @@ from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 
 from artemis.context import ArtemisContext
 from artemis.memory.step_memory import JobKey, StepMemoryService
-from artemis.services.llm import RobustChatModelWrapper, get_google_llm, get_llm, uses_google_provider
+from artemis.services.llm import (
+    RobustChatModelWrapper,
+    get_google_llm,
+    get_llm,
+    uses_google_provider,
+)
 from artemis.services.token_meter import record_llm_usage
 from artemis.utils.logger import get_logger
 from artemis.utils.task_tree import format_actions_clean
