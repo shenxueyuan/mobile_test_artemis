@@ -28,9 +28,13 @@ import {
 import {
   AppReference,
   SmartSuggestion,
+  SmartTaskDraft,
   SuggestionCategory
 } from '../../core/data/smart-tasks.data';
-import { TaskRecommendationService } from '../../core/services/task-recommendation.service';
+import {
+  SmartTaskPayload,
+  TaskRecommendationService
+} from '../../core/services/task-recommendation.service';
 import {
   DEFAULT_EXPLORER_MODE,
   DEFAULT_VERIFICATION_LEVEL,
@@ -489,7 +493,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   });
 
   // Rich Smart Suggestions Library (Device-Aware, Flash vs Pro Tailored)
-  public readonly allSuggestions = this.taskRecService.allTasks;
+  public readonly taskManagerOpen = signal<boolean>(false);
+  public readonly taskDraft = signal<SmartTaskDraft | null>(null);
+  public readonly taskFormError = signal<string | null>(null);
 
   // Suggestion category filter & shuffle state
   public selectedCategory = signal<SuggestionCategory>('all');
@@ -538,6 +544,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
 
     this.loadProTuningDefaults();
+    this.taskRecService.load().subscribe();
     // Initial fetch of system readiness & model configuration
     this.systemService.fetchReadiness().subscribe();
     this.systemService.fetchModelConfigEnv().subscribe();
@@ -1051,6 +1058,133 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.taskGoal.set(item.goal);
     this.selectedProfile.set(item.profile);
     this.errorMessage.set(null);
+  }
+
+  // ------------------------------------------------------------------
+  // Recommended-task management (CRUD over /api/smart-tasks)
+  // ------------------------------------------------------------------
+
+  public openTaskManager(): void {
+    this.taskFormError.set(null);
+    this.taskDraft.set(null);
+    this.taskManagerOpen.set(true);
+    this.taskRecService.load().subscribe();
+  }
+
+  public closeTaskManager(): void {
+    this.taskManagerOpen.set(false);
+    this.taskDraft.set(null);
+    this.taskFormError.set(null);
+  }
+
+  public startCreateTask(): void {
+    this.taskFormError.set(null);
+    this.taskDraft.set(this.emptyTaskDraft());
+  }
+
+  public startEditTask(task: SmartSuggestion): void {
+    this.taskFormError.set(null);
+    this.taskDraft.set({
+      id: task.id,
+      title: task.title,
+      description: task.description ?? '',
+      goal: task.goal,
+      profile: task.profile,
+      category: task.category,
+      tag: task.tag ?? '',
+      requiredPackages: (task.requiredPackages ?? []).join(', '),
+      matchMode: task.matchMode ?? 'any',
+      priority: task.priority ?? 50
+    });
+  }
+
+  public cancelTaskEdit(): void {
+    this.taskDraft.set(null);
+    this.taskFormError.set(null);
+  }
+
+  public patchTaskDraft(patch: Partial<SmartTaskDraft>): void {
+    const draft = this.taskDraft();
+    if (draft) {
+      this.taskDraft.set({ ...draft, ...patch });
+    }
+  }
+
+  public saveTask(): void {
+    const draft = this.taskDraft();
+    if (!draft) return;
+
+    const packages = draft.requiredPackages
+      .split(',')
+      .map(pkg => pkg.trim())
+      .filter(pkg => pkg.length > 0);
+
+    if (!draft.title.trim() || !draft.goal.trim()) {
+      this.taskFormError.set('标题和任务目标不能为空。');
+      return;
+    }
+
+    const payload: SmartTaskPayload = {
+      id: draft.id.trim() || undefined,
+      title: draft.title.trim(),
+      description: draft.description.trim(),
+      goal: draft.goal.trim(),
+      profile: draft.profile,
+      category: draft.category,
+      tag: draft.tag.trim(),
+      requiredPackages: packages,
+      matchMode: draft.matchMode,
+      priority: draft.priority,
+      apps: this.taskRecService.buildApps(packages)
+    };
+
+    const existing = this.taskRecService.tasks().some(task => task.id === draft.id);
+    const request = existing
+      ? this.taskRecService.update(draft.id, payload)
+      : this.taskRecService.create(payload);
+
+    request.subscribe({
+      next: () => {
+        this.taskDraft.set(null);
+        this.taskFormError.set(null);
+      },
+      error: err =>
+        this.taskFormError.set(
+          err?.error?.detail || err?.message || '保存推荐任务失败。'
+        )
+    });
+  }
+
+  public deleteTask(task: SmartSuggestion, event?: Event): void {
+    event?.stopPropagation();
+    if (!confirm(`确定删除推荐任务「${task.title}」吗？`)) return;
+    this.taskRecService.remove(task.id).subscribe({
+      error: err =>
+        this.taskFormError.set(err?.error?.detail || err?.message || '删除推荐任务失败。')
+    });
+  }
+
+  public resetTasks(): void {
+    if (!confirm('确定恢复为内置默认推荐任务吗？当前的自定义内容会被丢弃。')) return;
+    this.taskRecService.reset().subscribe({
+      error: err =>
+        this.taskFormError.set(err?.error?.detail || err?.message || '恢复默认失败。')
+    });
+  }
+
+  private emptyTaskDraft(): SmartTaskDraft {
+    return {
+      id: '',
+      title: '',
+      description: '',
+      goal: '',
+      profile: 'flash',
+      category: 'flash',
+      tag: '',
+      requiredPackages: '',
+      matchMode: 'any',
+      priority: 50
+    };
   }
 
   public applyQuickPrompt(promptGoal: string, profile?: 'flash' | 'pro'): void {

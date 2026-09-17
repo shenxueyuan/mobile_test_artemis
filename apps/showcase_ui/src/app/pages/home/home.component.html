@@ -2043,6 +2043,10 @@
             </div>
 
             <div class="header-right">
+              <button type="button" class="btn-shuffle-suggestions" (click)="openTaskManager()" title="新增、编辑或删除推荐任务">
+                <span class="material-symbols-outlined shuffle-icon">tune</span>
+                <span>管理</span>
+              </button>
               <button type="button" class="btn-shuffle-suggestions" (click)="shuffleSuggestions()" title="发现更多任务">
                 <span class="material-symbols-outlined shuffle-icon">shuffle</span>
                 <span>换一批</span>
@@ -2100,4 +2104,169 @@
     }
 
   </main>
+
+  <!-- Recommended-task manager (CRUD over /api/smart-tasks) -->
+  @if (taskManagerOpen()) {
+    <div class="task-manager-backdrop" (click)="closeTaskManager()"></div>
+    <section class="task-manager" role="dialog" aria-label="推荐任务管理">
+      <header class="tm-header">
+        <div class="tm-title-group">
+          <span class="material-symbols-outlined tm-title-icon">tune</span>
+          <div class="tm-title-text">
+            <h3>推荐任务管理</h3>
+            <p class="tm-subtitle">
+              共 {{ taskRecService.tasks().length }} 个任务
+              @if (taskRecService.editablePath()) {
+                · 存储于 <code>{{ taskRecService.editablePath() }}</code>
+              }
+            </p>
+          </div>
+        </div>
+        <div class="tm-header-actions">
+          <button type="button" class="tm-btn tm-btn-primary" (click)="startCreateTask()">
+            <span class="material-symbols-outlined">add</span>
+            <span>新增</span>
+          </button>
+          <button type="button" class="tm-btn" (click)="resetTasks()">
+            <span class="material-symbols-outlined">restart_alt</span>
+            <span>恢复默认</span>
+          </button>
+          <button type="button" class="tm-btn tm-btn-icon" (click)="closeTaskManager()" title="关闭">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </header>
+
+      @if (taskRecService.loadError()) {
+        <div class="tm-alert">{{ taskRecService.loadError() }}</div>
+      }
+      @if (taskFormError()) {
+        <div class="tm-alert">{{ taskFormError() }}</div>
+      }
+
+      <div class="tm-body">
+        <div class="tm-list">
+          @if (taskRecService.isLoading()) {
+            <div class="tm-empty">正在加载推荐任务...</div>
+          } @else if (taskRecService.tasks().length === 0) {
+            <div class="tm-empty">还没有推荐任务，点击「新增」创建第一个。</div>
+          }
+          @for (task of taskRecService.tasks(); track task.id) {
+            <div class="tm-row" [class.is-editing]="taskDraft()?.id === task.id">
+              <div class="tm-row-main">
+                <div class="tm-row-title">
+                  <span class="tm-row-name">{{ task.title }}</span>
+                  <span class="tm-badge" [class.tm-badge-pro]="task.profile === 'pro'">
+                    {{ task.profile === 'pro' ? 'Pro' : 'Flash' }}
+                  </span>
+                  <span class="tm-badge tm-badge-plain">{{ task.category }}</span>
+                  <span class="tm-badge tm-badge-plain">优先级 {{ task.priority ?? 50 }}</span>
+                </div>
+                @if (task.description) {
+                  <div class="tm-row-desc">{{ task.description }}</div>
+                }
+                <div class="tm-row-meta">
+                  <code>{{ task.id }}</code>
+                  @if (task.requiredPackages?.length) {
+                    <span>· {{ task.requiredPackages?.join('、') }}</span>
+                  }
+                </div>
+              </div>
+              <div class="tm-row-actions">
+                <button type="button" class="tm-btn tm-btn-small" (click)="startEditTask(task)">编辑</button>
+                <button type="button" class="tm-btn tm-btn-small tm-btn-danger" (click)="deleteTask(task, $event)">删除</button>
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (taskDraft(); as draft) {
+          <div class="tm-form">
+            <h4 class="tm-form-title">{{ draft.id ? '编辑任务' : '新增任务' }}</h4>
+
+            <label class="tm-field">
+              <span>标题 <em>*</em></span>
+              <input type="text" [ngModel]="draft.title" (ngModelChange)="patchTaskDraft({ title: $event })"
+                placeholder="例如：检查蓝牙连接" />
+            </label>
+
+            <label class="tm-field">
+              <span>任务目标 <em>*</em></span>
+              <textarea rows="3" [ngModel]="draft.goal" (ngModelChange)="patchTaskDraft({ goal: $event })"
+                placeholder="交给 Agent 执行的完整指令，例如：打开设置，开启蓝牙并连接已配对的耳机。"></textarea>
+            </label>
+
+            <label class="tm-field">
+              <span>卡片描述</span>
+              <input type="text" [ngModel]="draft.description"
+                (ngModelChange)="patchTaskDraft({ description: $event })" placeholder="一句话说明，展示在卡片上" />
+            </label>
+
+            <div class="tm-field-row">
+              <label class="tm-field">
+                <span>运行模式</span>
+                <select [ngModel]="draft.profile" (ngModelChange)="patchTaskDraft({ profile: $event })">
+                  <option value="flash">Flash</option>
+                  <option value="pro">Pro</option>
+                </select>
+              </label>
+
+              <label class="tm-field">
+                <span>分类</span>
+                <select [ngModel]="draft.category" (ngModelChange)="patchTaskDraft({ category: $event })">
+                  <option value="flash">flash</option>
+                  <option value="pro">pro</option>
+                  <option value="cross_app">cross_app（跨应用）</option>
+                  <option value="monitor">monitor（监控）</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="tm-field-row">
+              <label class="tm-field">
+                <span>标签</span>
+                <input type="text" [ngModel]="draft.tag" (ngModelChange)="patchTaskDraft({ tag: $event })"
+                  placeholder="例如：设置" />
+              </label>
+
+              <label class="tm-field">
+                <span>优先级（0-100）</span>
+                <input type="number" min="0" max="100" [ngModel]="draft.priority"
+                  (ngModelChange)="patchTaskDraft({ priority: +$event })" />
+              </label>
+            </div>
+
+            <label class="tm-field">
+              <span>依赖的应用包名（逗号分隔，留空表示不限应用）</span>
+              <input type="text" [ngModel]="draft.requiredPackages"
+                (ngModelChange)="patchTaskDraft({ requiredPackages: $event })"
+                placeholder="com.android.settings, com.tencent.mm" />
+            </label>
+
+            <label class="tm-field">
+              <span>包名匹配方式</span>
+              <select [ngModel]="draft.matchMode" (ngModelChange)="patchTaskDraft({ matchMode: $event })">
+                <option value="any">any（任一包命中即可）</option>
+                <option value="all">all（所有包都需命中）</option>
+              </select>
+            </label>
+
+            <label class="tm-field">
+              <span>任务 ID（留空自动生成）</span>
+              <input type="text" [ngModel]="draft.id" (ngModelChange)="patchTaskDraft({ id: $event })"
+                [disabled]="!!draft.id" placeholder="例如：toggle_bluetooth" />
+            </label>
+
+            <div class="tm-form-actions">
+              <button type="button" class="tm-btn" (click)="cancelTaskEdit()">取消</button>
+              <button type="button" class="tm-btn tm-btn-primary" [disabled]="taskRecService.isSaving()"
+                (click)="saveTask()">
+                {{ taskRecService.isSaving() ? '保存中...' : '保存' }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
 </div>

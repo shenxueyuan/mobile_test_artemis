@@ -1,0 +1,258 @@
+{
+  "version": 1,
+  "apps": {
+    "com.google.android.apps.maps": { "name": "谷歌地图", "icon": "explore", "pkg": "com.google.android.apps.maps", "category": "navigation" },
+    "com.google.android.gm": { "name": "Gmail", "icon": "mail", "pkg": "com.google.android.gm", "category": "productivity" },
+    "com.android.chrome": { "name": "Chrome", "icon": "public", "pkg": "com.android.chrome", "category": "browser" },
+    "com.google.android.youtube": { "name": "YouTube", "icon": "smart_display", "pkg": "com.google.android.youtube", "category": "entertainment" },
+    "com.android.settings": { "name": "设置", "icon": "settings", "pkg": "com.android.settings", "category": "system" },
+    "com.google.android.deskclock": { "name": "时钟", "icon": "timer", "pkg": "com.google.android.deskclock", "category": "utility" },
+    "com.android.deskclock": { "name": "时钟", "icon": "timer", "pkg": "com.android.deskclock", "category": "utility" },
+    "com.google.android.calculator": { "name": "计算器", "icon": "calculate", "pkg": "com.google.android.calculator", "category": "utility" },
+    "com.android.calculator2": { "name": "计算器", "icon": "calculate", "pkg": "com.android.calculator2", "category": "utility" },
+    "com.google.android.apps.photos": { "name": "相册", "icon": "photo_library", "pkg": "com.google.android.apps.photos", "category": "media" },
+    "com.google.android.calendar": { "name": "日历", "icon": "calendar_month", "pkg": "com.google.android.calendar", "category": "productivity" },
+    "com.google.android.keep": { "name": "Keep 笔记", "icon": "note_alt", "pkg": "com.google.android.keep", "category": "productivity" },
+    "com.android.vending": { "name": "Play 商店", "icon": "storefront", "pkg": "com.android.vending", "category": "tools" },
+    "com.google.android.apps.messaging": { "name": "信息", "icon": "chat", "pkg": "com.google.android.apps.messaging", "category": "communication" },
+    "com.tencent.mm": { "name": "微信", "icon": "forum", "pkg": "com.tencent.mm", "category": "social" },
+    "com.xingin.xhs": { "name": "小红书", "icon": "auto_stories", "pkg": "com.xingin.xhs", "category": "social" },
+    "com.sankuai.meituan": { "name": "美团", "icon": "restaurant", "pkg": "com.sankuai.meituan", "category": "lifestyle" },
+    "com.dianping.v1": { "name": "大众点评", "icon": "star", "pkg": "com.dianping.v1", "category": "lifestyle" },
+    "tv.danmaku.bili": { "name": "哔哩哔哩", "icon": "video_library", "pkg": "tv.danmaku.bili", "category": "entertainment" },
+    "com.eg.android.AlipayGphone": { "name": "支付宝", "icon": "account_balance_wallet", "pkg": "com.eg.android.AlipayGphone", "category": "finance" },
+    "com.netease.cloudmusic": { "name": "网易云音乐", "icon": "headphones", "pkg": "com.netease.cloudmusic", "category": "entertainment" },
+    "com.spotify.music": { "name": "Spotify", "icon": "music_note", "pkg": "com.spotify.music", "category": "entertainment" }
+  },
+  "tasks": [
+    {
+      "id": "maps_coffee",
+      "title": "搜索精品咖啡店",
+      "description": "在谷歌地图中搜索附近评分最高的咖啡店",
+      "goal": "打开谷歌地图，搜索附近评分最高的精品咖啡店，并查看排名第一的结果详情。",
+      "profile": "flash",
+      "category": "flash",
+      "tag": "谷歌地图",
+      "apps": [{ "name": "谷歌地图", "icon": "explore", "pkg": "com.google.android.apps.maps" }],
+      "requiredPackages": ["com.google.android.apps.maps"],
+      "priority": 95
+    },
+    {
+      "id": "pro_commute_share",
+      "title": "通勤耗时与短信草稿",
+      "description": "在地图中查询通行时间，并在信息中拟好到达时间短信",
+      "goal": "打开谷歌地图查询到国际机场的通勤时间，计算到达时刻，然后打开「信息」并拟一条告知到达时间的短信。",
+      "profile": "pro",
+      "category": "cross_app",
+      "tag": "谷歌地图 + 信息",
+      "apps": [
+        { "name": "谷歌地图", "icon": "explore", "pkg": "com.google.android.apps.maps" },
+        { "name": "信息", "icon": "chat", "pkg": "com.google.android.apps.messaging" }
+      ],
+      "requiredPackages": ["com.google.android.apps.maps", "com.google.android.apps.messaging"],
+      "matchMode": "all",
+      "priority": 92
+    },
+    {
+      "id": "gmail_receipts",
+      "title": "搜索订单回执邮件",
+      "description": "在 Gmail 中查找最近的航班或快递确认邮件",
+      "goal": "打开 Gmail，搜索最近的航班或快递确认邮件。",
+      "profile": "flash",
+      "category": "flash",
+      "tag": "Gmail",
+      "apps": [{ "name": "Gmail", "icon": "mail", "pkg": "com.google.android.gm" }],
+      "requiredPackages": ["com.google.android.gm"],
+      "priority": 90
+    },
+    {
+      "id": "pro_email_to_calendar",
+      "title": "邮件行程写入日历",
+      "description": "从 Gmail 中提取航班或活动日期并创建日历事件",
+      "goal": "打开 Gmail 找到最新的活动邀请或行程邮件，提取日期和地点，然后打开日历并创建对应的日程事件。",
+      "profile": "pro",
+      "category": "cross_app",
+      "tag": "Gmail + 日历",
+      "apps": [
+        { "name": "Gmail", "icon": "mail", "pkg": "com.google.android.gm" },
+        { "name": "日历", "icon": "calendar_month", "pkg": "com.google.android.calendar" }
+      ],
+      "requiredPackages": ["com.google.android.gm"],
+      "priority": 94
+    },
+    {
+      "id": "chrome_research",
+      "title": "搜索 AI 最新进展",
+      "description": "在 Chrome 浏览器中搜索多模态 AI 的最新进展",
+      "goal": "打开 Chrome 浏览器，搜索多模态移动端 AI Agent 的最新进展。",
+      "profile": "flash",
+      "category": "flash",
+      "tag": "Chrome",
+      "apps": [{ "name": "Chrome", "icon": "public", "pkg": "com.android.chrome" }],
+      "requiredPackages": ["com.android.chrome"],
+      "priority": 88
+    },
+    {
+      "id": "pro_research_keep",
+      "title": "产品调研与笔记",
+      "description": "在 Chrome 中对比三款热门耳机并记录到 Keep 笔记",
+      "goal": "打开 Chrome，调研三款降噪耳机并对比价格与续航，然后在 Keep 笔记中写一篇结构化的对比总结。",
+      "profile": "pro",
+      "category": "pro",
+      "tag": "Chrome + Keep",
+      "apps": [
+        { "name": "Chrome", "icon": "public", "pkg": "com.android.chrome" },
+        { "name": "Keep 笔记", "icon": "note_alt", "pkg": "com.google.android.keep" }
+      ],
+      "requiredPackages": ["com.android.chrome"],
+      "priority": 91
+    },
+    {
+      "id": "youtube_lofi",
+      "title": "播放 Lo-Fi 音乐电台",
+      "description": "在 YouTube 中搜索并播放 Lo-Fi 嘻哈直播",
+      "goal": "打开 YouTube，搜索 \"Lofi hip hop beats relaxing radio\" 并点击进入直播间。",
+      "profile": "flash",
+      "category": "flash",
+      "tag": "YouTube",
+      "apps": [{ "name": "YouTube", "icon": "smart_display", "pkg": "com.google.android.youtube" }],
+      "requiredPackages": ["com.google.android.youtube"],
+      "priority": 85
+    },
+    {
+      "id": "settings_display_wifi",
+      "title": "深色模式与 Wi-Fi 检查",
+      "description": "在设置中切换深色主题并检查网络连接状态",
+      "goal": "打开设置应用，进入显示设置，确认深色主题已开启，并检查 Wi-Fi 连接状态。",
+      "profile": "flash",
+      "category": "flash",
+      "tag": "设置",
+      "apps": [{ "name": "设置", "icon": "settings", "pkg": "com.android.settings" }],
+      "requiredPackages": ["com.android.settings"],
+      "priority": 87
+    },
+    {
+      "id": "pro_settings_qa",
+      "title": "子模块健康度与崩溃排查",
+      "description": "遍历设置子菜单，校验各页面并检查是否有崩溃弹窗",
+      "goal": "遍历设置的各个子菜单（网络、已连接设备、应用、电池、存储），确认每个页面都能正常加载，没有 ANR 或崩溃弹窗，并汇总结果。",
+      "profile": "pro",
+      "category": "monitor",
+      "tag": "设置巡检",
+      "apps": [{ "name": "设置", "icon": "settings", "pkg": "com.android.settings" }],
+      "requiredPackages": ["com.android.settings"],
+      "priority": 93
+    },
+    {
+      "id": "clock_timer",
+      "title": "25 分钟番茄钟",
+      "description": "在时钟应用中启动 25 分钟专注倒计时",
+      "goal": "打开时钟应用，切换到计时器标签页，设置 25 分钟并开始倒计时。",
+      "profile": "flash",
+      "category": "flash",
+      "tag": "时钟",
+      "apps": [{ "name": "时钟", "icon": "timer", "pkg": "com.google.android.deskclock" }],
+      "requiredPackages": ["com.google.android.deskclock", "com.android.deskclock"],
+      "priority": 86
+    },
+    {
+      "id": "calc_gratuity",
+      "title": "分摊账单并计算小费",
+      "description": "在计算器中计算 186.40 美元账单的 18% 小费并由 3 人分摊",
+      "goal": "打开计算器，计算 186.40 美元账单 18% 的小费，然后除以 3 人分摊。",
+      "profile": "flash",
+      "category": "flash",
+      "tag": "计算器",
+      "apps": [{ "name": "计算器", "icon": "calculate", "pkg": "com.google.android.calculator" }],
+      "requiredPackages": ["com.google.android.calculator", "com.android.calculator2"],
+      "priority": 84
+    },
+    {
+      "id": "photos_inspect",
+      "title": "查看最新截图",
+      "description": "打开相册并查看最近拍摄的截图",
+      "goal": "打开相册，在截图相册中查看最近的一张截图。",
+      "profile": "flash",
+      "category": "flash",
+      "tag": "相册",
+      "apps": [{ "name": "相册", "icon": "photo_library", "pkg": "com.google.android.apps.photos" }],
+      "requiredPackages": ["com.google.android.apps.photos"],
+      "priority": 82
+    },
+    {
+      "id": "wechat_browse",
+      "title": "查看微信消息",
+      "description": "打开微信并查看最近的热门聊天会话",
+      "goal": "打开微信，查看最近的热门聊天消息。",
+      "profile": "flash",
+      "category": "flash",
+      "tag": "微信",
+      "apps": [{ "name": "微信", "icon": "forum", "pkg": "com.tencent.mm" }],
+      "requiredPackages": ["com.tencent.mm"],
+      "priority": 89
+    },
+    {
+      "id": "pro_wechat_to_calendar",
+      "title": "微信通知写入日历",
+      "description": "从微信聊天中提取会议通知并添加到日历",
+      "goal": "打开微信，在置顶聊天中找到最新的会议通知或活动消息，提取时间和主题，然后打开日历创建日程。",
+      "profile": "pro",
+      "category": "cross_app",
+      "tag": "微信 + 日历",
+      "apps": [
+        { "name": "微信", "icon": "forum", "pkg": "com.tencent.mm" },
+        { "name": "日历", "icon": "calendar_month", "pkg": "com.google.android.calendar" }
+      ],
+      "requiredPackages": ["com.tencent.mm"],
+      "priority": 93
+    },
+    {
+      "id": "xhs_coffee_guide",
+      "title": "小红书咖啡店攻略",
+      "description": "在小红书上搜索热门的精品咖啡店测评",
+      "goal": "打开小红书，搜索评分最高的精品咖啡店，并查看排名第一的笔记。",
+      "profile": "flash",
+      "category": "flash",
+      "tag": "小红书",
+      "apps": [{ "name": "小红书", "icon": "auto_stories", "pkg": "com.xingin.xhs" }],
+      "requiredPackages": ["com.xingin.xhs"],
+      "priority": 87
+    },
+    {
+      "id": "meituan_ramen_search",
+      "title": "美团美食搜索",
+      "description": "在美团或大众点评上搜索附近评分最高的拉面店",
+      "goal": "打开美团或大众点评，搜索附近评分最高的拉面店，并查看排名第一的餐厅评分。",
+      "profile": "flash",
+      "category": "flash",
+      "tag": "美团",
+      "apps": [{ "name": "美团", "icon": "restaurant", "pkg": "com.sankuai.meituan" }],
+      "requiredPackages": ["com.sankuai.meituan", "com.dianping.v1"],
+      "priority": 86
+    },
+    {
+      "id": "bilibili_stream",
+      "title": "哔哩哔哩科技视频",
+      "description": "在哔哩哔哩上搜索并播放 AI Agent 教程视频",
+      "goal": "打开哔哩哔哩，搜索 \"AI Agent 架构\"，并播放排名第一的视频。",
+      "profile": "flash",
+      "category": "flash",
+      "tag": "哔哩哔哩",
+      "apps": [{ "name": "哔哩哔哩", "icon": "video_library", "pkg": "tv.danmaku.bili" }],
+      "requiredPackages": ["tv.danmaku.bili"],
+      "priority": 85
+    },
+    {
+      "id": "pro_playstore_review",
+      "title": "Play 商店应用评测调研",
+      "description": "在 Google Play 上对比热门任务管理应用及评分",
+      "goal": "打开 Google Play 商店，搜索评分最高的任务管理应用，对比前两名候选应用的评分与最新用户评论，并记录推荐结论。",
+      "profile": "pro",
+      "category": "pro",
+      "tag": "Play 商店",
+      "apps": [{ "name": "Play 商店", "icon": "storefront", "pkg": "com.android.vending" }],
+      "requiredPackages": ["com.android.vending"],
+      "priority": 88
+    }
+  ]
+}

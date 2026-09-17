@@ -27,7 +27,19 @@ try:
     from admin_console.schemas.task_schema import RunRequest
     from admin_console.services.ipc_service import ipc_service
     from admin_console.services.model_service import model_service
-    from admin_console.services.task_preset_catalog import task_recommendation_engine
+    from admin_console.services.smart_tasks_store import (
+        SmartTasksError,
+        SmartTasksNotFoundError,
+        smart_tasks_store,
+    )
+    from admin_console.services.task_preset_catalog import (
+        create_preset,
+        delete_preset,
+        list_presets,
+        reset_presets,
+        task_recommendation_engine,
+        update_preset,
+    )
     from admin_console.services.task_queue_service import task_queue_service
 except ImportError:
     from apps.admin_console.core.state import state
@@ -35,7 +47,19 @@ except ImportError:
     from apps.admin_console.schemas.task_schema import RunRequest
     from apps.admin_console.services.ipc_service import ipc_service
     from apps.admin_console.services.model_service import model_service
-    from apps.admin_console.services.task_preset_catalog import task_recommendation_engine
+    from apps.admin_console.services.smart_tasks_store import (
+        SmartTasksError,
+        SmartTasksNotFoundError,
+        smart_tasks_store,
+    )
+    from apps.admin_console.services.task_preset_catalog import (
+        create_preset,
+        delete_preset,
+        list_presets,
+        reset_presets,
+        task_recommendation_engine,
+        update_preset,
+    )
     from apps.admin_console.services.task_queue_service import task_queue_service
 
 
@@ -61,9 +85,69 @@ async def get_task_presets(
 async def get_task_catalog():
     """Retrieve full catalog of predefined tasks and app package registry."""
     return {
-        "tasks": [t.model_dump() for t in task_recommendation_engine.get_all_tasks()],
+        "tasks": task_recommendation_engine.get_all_tasks(),
         "app_registry": task_recommendation_engine.get_app_registry(),
     }
+
+
+def _smart_tasks_http_error(exc: SmartTasksError) -> HTTPException:
+    """Map a preset store failure onto the matching client status."""
+    if isinstance(exc, SmartTasksNotFoundError):
+        return HTTPException(status_code=404, detail=str(exc))
+    return HTTPException(status_code=400, detail=str(exc))
+
+
+@router.get("/api/smart-tasks")
+async def list_smart_tasks():
+    """List every recommended-task preset with the app registry and store paths."""
+    try:
+        presets = list_presets()
+    except SmartTasksError as exc:
+        raise _smart_tasks_http_error(exc) from exc
+    return {
+        "tasks": [preset.wire() for preset in presets],
+        "apps": smart_tasks_store.list_apps(),
+        "path": str(smart_tasks_store.read_path()),
+        "editable_path": str(smart_tasks_store.write_path()),
+    }
+
+
+@router.post("/api/smart-tasks", status_code=201)
+async def create_smart_task(payload: dict[str, Any]):
+    """Create a recommended-task preset."""
+    try:
+        return create_preset(payload).wire()
+    except SmartTasksError as exc:
+        raise _smart_tasks_http_error(exc) from exc
+
+
+@router.put("/api/smart-tasks/{task_id}")
+async def update_smart_task(task_id: str, payload: dict[str, Any]):
+    """Replace an existing recommended-task preset."""
+    try:
+        return update_preset(task_id, payload).wire()
+    except SmartTasksError as exc:
+        raise _smart_tasks_http_error(exc) from exc
+
+
+@router.delete("/api/smart-tasks/{task_id}")
+async def delete_smart_task(task_id: str):
+    """Delete a recommended-task preset."""
+    try:
+        delete_preset(task_id)
+    except SmartTasksError as exc:
+        raise _smart_tasks_http_error(exc) from exc
+    return {"status": "deleted", "id": task_id}
+
+
+@router.post("/api/smart-tasks/reset")
+async def reset_smart_tasks():
+    """Restore the shipped preset catalog by dropping the user's copy."""
+    try:
+        presets = reset_presets()
+    except SmartTasksError as exc:
+        raise _smart_tasks_http_error(exc) from exc
+    return {"tasks": [preset.wire() for preset in presets]}
 
 
 @router.post("/api/run")
