@@ -16,12 +16,10 @@
 
 A handwriting canvas may be pen-only (pen events required) or finger-only, and
 the caller should not have to know which. ``source="auto"`` injects pen events
-and falls back to finger events when the canvas region stays byte-identical.
+and falls back to finger events when the canvas shows no new ink.
 """
 
-import base64
-import io
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 from PIL import Image
 import pytest
@@ -33,27 +31,40 @@ from artemis.mcp.handwriting import stroke_db_path
 requires_db = pytest.mark.skipif(stroke_db_path() is None, reason="strokes.db is not installed")
 
 SCREEN = (1000, 2000)
+#: A box the tests write into, in normalized 0-1000 units.
+BOUNDS = (100, 100, 500, 500)
 
 
-def _png(color: int) -> str:
-    buffer = io.BytesIO()
-    Image.new("RGB", (SCREEN[0], SCREEN[1]), (color, color, color)).save(buffer, format="PNG")
-    return base64.b64encode(buffer.getvalue()).decode()
+def _blank() -> Image.Image:
+    """An empty (white) canvas screen."""
+    return Image.new("RGB", SCREEN, (255, 255, 255))
 
 
-def _actuator(shots=None):
+def _inked() -> Image.Image:
+    """The same screen with a dark mark inside the writing box."""
+    image = _blank()
+    left, top = 100, 200
+    for x in range(left, left + 80):
+        for y in range(top, top + 80):
+            image.putpixel((x, y), (0, 0, 0))
+    return image
+
+
+def _actuator(images=None):
     ctx = Mock()
     ctx.device.device_width = SCREEN[0]
     ctx.device.device_height = SCREEN[1]
     controller = Mock()
-    shots = list(shots or [_png(255), _png(255)])
-    controller.take_screenshot = AsyncMock(side_effect=lambda: shots.pop(0) if shots else _png(255))
+    controller.take_screenshot = Mock(side_effect=AssertionError("stale frame path used"))
     return AdbActuator(ctx, controller=controller), controller
 
 
-def _fake_device():
+def _fake_device(images=None):
+    """An adb device whose screenshots walk through ``images``."""
+    frames = list(images or [])
     device = Mock()
     device.shell = Mock(return_value="")
+    device.screenshot = Mock(side_effect=lambda: frames.pop(0) if frames else _blank())
     return device
 
 
@@ -73,7 +84,7 @@ async def test_explicit_bounds_are_mapped_to_pixels():
     actuator, _ = _actuator()
     device = _fake_device()
     with patch("artemis.mcp.actuators.adb.get_adb_device", return_value=device):
-        result = await actuator.handwrite("毯", bounds=(100, 100, 500, 500), source="stylus")
+        result = await actuator.handwrite("毯", bounds=BOUNDS, source="stylus")
 
     assert result.ok, result.message
     assert "[100, 200, 500, 1000]px" in result.message
@@ -103,12 +114,12 @@ async def test_no_device_connection_is_reported():
 
 
 @pytest.mark.asyncio
-async def test_auto_keeps_pen_events_when_the_canvas_changes():
-    # before/after screenshots differ: the pen worked, no fallback.
-    actuator, _ = _actuator(shots=[_png(255), _png(0)])
-    device = _fake_device()
+async def test_auto_keeps_pen_events_when_ink_appears():
+    # Blank before, marked after: the pen worked, so no fallback.
+    actuator, _ = _actuator()
+    device = _fake_device(images=[_blank(), _inked()])
     with patch("artemis.mcp.actuators.adb.get_adb_device", return_value=device):
-        result = await actuator.handwrite("毯", bounds=(100, 100, 500, 500))
+        result = await actuator.handwrite("毯", bounds=BOUNDS)
 
     assert result.ok, result.message
     assert "using stylus events" in result.message
@@ -118,12 +129,12 @@ async def test_auto_keeps_pen_events_when_the_canvas_changes():
 
 
 @pytest.mark.asyncio
-async def test_auto_retries_with_finger_events_when_the_canvas_stays_blank():
-    # before/after identical for the pen attempt, then different for the finger one.
-    actuator, _ = _actuator(shots=[_png(255), _png(255), _png(0)])
-    device = _fake_device()
+async def test_auto_retries_with_finger_events_when_no_ink_appears():
+    # Blank for the pen attempt, marked once the finger attempt lands.
+    actuator, _ = _actuator()
+    device = _fake_device(images=[_blank(), _blank(), _inked()])
     with patch("artemis.mcp.actuators.adb.get_adb_device", return_value=device):
-        result = await actuator.handwrite("毯", bounds=(100, 100, 500, 500))
+        result = await actuator.handwrite("毯", bounds=BOUNDS)
 
     assert result.ok, result.message
     assert "using touchscreen events" in result.message
@@ -135,12 +146,26 @@ async def test_auto_retries_with_finger_events_when_the_canvas_stays_blank():
 
 @pytest.mark.asyncio
 async def test_auto_reports_when_neither_source_leaves_ink():
-    actuator, _ = _actuator(shots=[_png(255)] * 6)
-    with patch("artemis.mcp.actuators.adb.get_adb_device", return_value=_fake_device()):
-        result = await actuator.handwrite("毯", bounds=(100, 100, 500, 500))
+    actuator, _ = _actuator()
+    device = _fake_device(images=[_blank()] * 8)
+    with patch("artemis.mcp.actuators.adb.get_adb_device", return_value=device):
+        result = await actuator.handwrite("毯", bounds=BOUNDS)
 
     assert not result.ok
     assert "did not change" in result.message
+
+
+@pytest.mark.asyncio
+async def test_an_unreadable_frame_skips_the_check_instead_of_failing():
+    """Verification must never fail an action whose strokes were already drawn."""
+    actuator, _ = _actuator()
+    device = _fake_device()
+    device.screenshot = Mock(side_effect=OSError("device offline"))
+    with patch("artemis.mcp.actuators.adb.get_adb_device", return_value=device):
+        result = await actuator.handwrite("毯", bounds=BOUNDS)
+
+    assert result.ok, result.message
+    assert "using stylus events" in result.message
 
 
 @requires_db
@@ -149,7 +174,7 @@ async def test_an_unknown_character_is_rejected_before_touching_the_device():
     actuator, _ = _actuator()
     device = _fake_device()
     with patch("artemis.mcp.actuators.adb.get_adb_device", return_value=device):
-        result = await actuator.handwrite("毯A", bounds=(100, 100, 500, 500))
+        result = await actuator.handwrite("毯A", bounds=BOUNDS)
 
     assert not result.ok
     assert "No stroke data" in result.message
@@ -162,7 +187,7 @@ async def test_a_missing_database_is_reported(monkeypatch):
     handwriting._medians_for.cache_clear()
     actuator, _ = _actuator()
     try:
-        result = await actuator.handwrite("毯", bounds=(100, 100, 500, 500))
+        result = await actuator.handwrite("毯", bounds=BOUNDS)
         assert not result.ok
         assert "strokes.db" in result.message
     finally:

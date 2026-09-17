@@ -293,19 +293,43 @@ class AdbActuator:
         cx, cy = width // 2, height // 2
         return (cx - side // 2, cy - side // 2, cx + side // 2, cy + side // 2), None
 
-    async def _canvas_signature(self, box: tuple[int, int, int, int]) -> bytes | None:
-        """Grayscale pixels of the canvas region, for the blank-canvas check.
+    #: Fraction of dark pixels that counts as "ink appeared" in the canvas region.
+    _INK_EPSILON = 0.002
 
-        Best effort: verification must never fail an action whose strokes were
-        already drawn, so an unreadable screenshot simply reports "unknown".
+    async def _fresh_screenshot(self) -> Any:
+        """A current frame, or ``None`` when it cannot be read.
+
+        The accessibility helper serves a *cached* frame: it reported an unchanged
+        canvas for strokes that had in fact landed, so the blank-canvas check reads
+        the frame straight from adb and only falls back to the controller.
         """
         try:
+            device = get_adb_device(self.ctx)
+            if device is not None:
+                shot = await asyncio.to_thread(device.screenshot)
+                if hasattr(shot, "crop"):
+                    return shot
             raw = await self.controller.take_screenshot()
-            with Image.open(io.BytesIO(base64.b64decode(raw))) as image:
-                return image.crop(box).convert("L").tobytes()
-        except (OSError, ValueError, AttributeError) as exc:
+            return Image.open(io.BytesIO(base64.b64decode(raw)))
+        except (OSError, ValueError, TypeError, AttributeError) as exc:
             logger.debug(f"Canvas ink check skipped: {exc}")
             return None
+
+    async def _canvas_ink(self, box: tuple[int, int, int, int]) -> float | None:
+        """Fraction of dark pixels in the canvas region, or ``None`` when unreadable.
+
+        A handwriting canvas is near-white before the first stroke, so the ink
+        fraction is the honest signal for "did anything get drawn" -- a byte
+        comparison also reacts to carets and animations, and cannot tell a fresh
+        frame from a stale one.
+        """
+        image = await self._fresh_screenshot()
+        if image is None:
+            return None
+        crop = image.crop(box).convert("L")
+        pixels = crop.tobytes()
+        dark = sum(1 for value in pixels if value < 128)
+        return dark / max(1, len(pixels))
 
     async def _draw_strokes(self, scripts: list[str], total_points: int) -> tuple[bool, str | None]:
         """Run the motion scripts on the device. Returns ``(ok, error)``.
@@ -370,7 +394,7 @@ class AdbActuator:
             )
 
         verify = source == "auto"
-        before = await self._canvas_signature(box) if verify else None
+        before = await self._canvas_ink(box) if verify else None
         attempt = "stylus" if source == "auto" else source
 
         ok, error = await self._draw_strokes(scripts, total_points)
@@ -378,8 +402,8 @@ class AdbActuator:
             return ActionResult.failure("handwrite", error or "Handwriting failed.")
 
         if verify and before is not None:
-            after = await self._canvas_signature(box)
-            if after is not None and after == before:
+            after = await self._canvas_ink(box)
+            if after is not None and after <= before + self._INK_EPSILON:
                 # The canvas ignored pen events: some canvases are finger-only.
                 logger.info("Handwriting left the canvas unchanged; retrying with finger events.")
                 finger_scripts = build_motion_scripts(
@@ -392,8 +416,8 @@ class AdbActuator:
                 if not ok:
                     return ActionResult.failure("handwrite", error or "Handwriting failed.")
                 attempt = "touchscreen"
-                after = await self._canvas_signature(box)
-                if after is not None and after == before:
+                after = await self._canvas_ink(box)
+                if after is not None and after <= before + self._INK_EPSILON:
                     return ActionResult.failure(
                         "handwrite",
                         f"Wrote '{text}' but the canvas did not change with pen or finger"
