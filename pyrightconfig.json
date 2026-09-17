@@ -1,0 +1,27 @@
+{
+  "//": [
+    "Editor-side type-check scope, kept in sync with pyright-core.json so the IDE",
+    "reports the same set as `make typecheck`.",
+    "",
+    "Most of the codebase is not type-clean yet, so a workspace-wide run buries the",
+    "files that are. CI always passes --project pyright-core.json explicitly, so this",
+    "file never changes what the build checks.",
+    "",
+    "Delete this file (or widen `include`) to type-check the whole workspace again."
+  ],
+  "venvPath": ".",
+  "venv": ".venv",
+  "include": [
+    "artemis/graph/state.py",
+    "artemis/graph/visibility.py",
+    "artemis/runtime/adb_endpoint.py",
+    "artemis/runtime/process_probe.py",
+    "artemis/mcp/action_types.py",
+    "artemis/data_engine/models.py",
+    "artemis/agents/explorer/native_runner.py",
+    "artemis/agents/explorer/perception_tools.py",
+    "mcp_server/utils/device_utils.py",
+    "packages/artemis-client/src/artemis_client"
+  ],
+  "exclude": [".venv/**"]
+}
