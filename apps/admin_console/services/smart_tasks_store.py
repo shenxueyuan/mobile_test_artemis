@@ -49,20 +49,27 @@ class SmartTasksStore:
         writable = self.write_path()
         if writable.is_file():
             return writable
-        try:
-            return get_config_path(STORE_FILENAME)
-        except FileNotFoundError as exc:
-            raise SmartTasksError(f"未找到推荐任务配置 {STORE_FILENAME}") from exc
+        # Fallback to bundled default
+        bundled = get_bundled_config_path(STORE_FILENAME)
+        if bundled is not None and Path(bundled).is_file():
+            return Path(bundled)
+        raise SmartTasksError(f"未找到推荐任务配置 {STORE_FILENAME}")
 
     def write_path(self) -> Path:
         """Resolve the file to mutate; the packaged default is never written to."""
         bundled = get_bundled_config_path(STORE_FILENAME)
+        # Always prefer config/ directory for user edits
+        user_path = CONFIG_DIR / STORE_FILENAME
+        # If config/ file exists, use it
+        if user_path.is_file():
+            return user_path
+        # Otherwise, check if get_config_path resolves to bundled
         try:
             resolved = get_config_path(STORE_FILENAME)
         except FileNotFoundError:
-            return CONFIG_DIR / STORE_FILENAME
+            return user_path
         if bundled is not None and resolved == Path(bundled):
-            return CONFIG_DIR / STORE_FILENAME
+            return user_path
         return resolved
 
     def read_raw(self) -> dict[str, Any]:

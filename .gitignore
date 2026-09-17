@@ -108,6 +108,9 @@ live_screenshot*.png
 *.pem
 *.key
 
+# User configuration overrides
+config/smart_tasks.json
+
 # OS Artifacts
 .DS_Store
 .DS_Store?
