@@ -145,6 +145,7 @@ def test_reset_restores_the_bundled_catalog(store):
 
 def test_mutations_never_touch_the_packaged_defaults(store):
     bundled = store_module.get_bundled_config_path(store_module.STORE_FILENAME)
+    assert bundled is not None
     before = json.dumps(json.loads(bundled.read_text(encoding="utf-8")), sort_keys=True)
 
     create_preset(_new_task(id="isolated"))

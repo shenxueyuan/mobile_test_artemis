@@ -175,8 +175,16 @@ class TaskRecommendationEngine:
         return smart_tasks_store.list_apps()
 
     def recommend_tasks(
-        self, installed_packages: list[str] | set[str], category: str = "all", limit: int = 12
+        self,
+        installed_packages: list[str] | set[str] | None,
+        category: str = "all",
+        limit: int = 12,
     ) -> list[dict[str, Any]]:
+        """Rank the catalog for the given installed packages, best match first.
+
+        ``installed_packages`` may be ``None`` when the caller has not detected
+        any device packages yet; priority order is then used unchanged.
+        """
         pkgs_set = (
             set(installed_packages) if isinstance(installed_packages, list) else installed_packages
         )
