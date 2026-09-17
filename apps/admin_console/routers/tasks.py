@@ -142,16 +142,16 @@ async def run_task(request: RunRequest):
     # device); the verified serial is bound below.
     target_serial = request.device_serial
     device_probe = await readiness_engine.run_device_submission_probe(target_serial=target_serial)
-    if device_probe and device_probe.summary in {"Device Locked", "Lock State Unknown"}:
+    if device_probe and device_probe.summary in {"设备已锁定", "锁屏状态未知"}:
         locked_serial = (
             device_probe.metadata.get("active_device", {}).get("serial") or target_serial or ""
         )
         detail = (
-            f"Android device {locked_serial} is locked. Unlock it and enter the home screen before running a task.".replace(
+            f"Android 设备 {locked_serial} 已锁定。请先解锁并进入主屏幕，再运行任务。".replace(
                 "  ", " "
             ).strip()
-            if device_probe.summary == "Device Locked"
-            else f"Android device {locked_serial} lock state could not be verified. Keep it unlocked on the home screen and try again.".replace(
+            if device_probe.summary == "设备已锁定"
+            else f"无法确认 Android 设备 {locked_serial} 的锁屏状态。请保持设备解锁并停留在主屏幕，然后重试。".replace(
                 "  ", " "
             ).strip()
         )

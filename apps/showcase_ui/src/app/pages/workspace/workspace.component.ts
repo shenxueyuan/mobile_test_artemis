@@ -118,7 +118,7 @@ export class WorkspaceComponent implements OnInit {
     if (curId) {
       return `Stop current task (${curId})`;
     }
-    return 'Stop current running task';
+    return '停止当前运行中的任务';
   });
 
   /**
@@ -244,7 +244,7 @@ export class WorkspaceComponent implements OnInit {
       error: (err) => {
         console.error('Failed to submit task:', err);
         this.isSubmitting.set(false);
-        this.errorMessage.set(err.error?.detail || 'The runner is busy. Please wait for current task to finish.');
+        this.errorMessage.set(err.error?.detail || '运行器正忙，请等待当前任务结束。');
         setTimeout(() => {
           this.errorMessage.set(null);
         }, 5000);

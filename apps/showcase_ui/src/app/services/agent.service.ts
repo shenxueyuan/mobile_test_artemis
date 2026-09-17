@@ -425,7 +425,7 @@ export class AgentService {
     return new Observable((obs) => {
       const submittedEvent: StartupProgressEvent = {
         stage: 'submitting',
-        message: 'Submitting the task',
+        message: '正在提交任务',
         timestamp: Date.now() / 1000
       };
       this.pendingStartupProgress.set([submittedEvent]);
@@ -828,7 +828,7 @@ export class AgentService {
                 this.activeVideoSegments.set([]);
                 this.recordingPlaybackStatus.set('failed');
                 this.recordingPlaybackMessage.set(
-                  parsedData?.error || 'Recording finalization failed.'
+                  parsedData?.error || '录制文件生成失败。'
                 );
               }
             }
@@ -945,7 +945,7 @@ export class AgentService {
             if (curId) {
               this.runningSessionId.set(curId);
               this.setSessionStatus(curId, 'paused');
-              const pauseError = parsedData.error || 'AI call failed';
+              const pauseError = parsedData.error || 'AI 调用失败';
               this.pausedError.set(pauseError);
               this.appendPausedErrorCard(
                 pauseError,
@@ -1522,7 +1522,7 @@ export class AgentService {
             this.isRetrying.set(false);
             const pauseError = data.paused_error
               || this.pausedError()
-              || 'AI model request failed. The task is paused.';
+              || 'AI 模型请求失败，任务已暂停。';
             this.pausedError.set(pauseError);
             if (data.session_id && this.currentSessionId() === data.session_id) {
               this.appendPausedErrorCard(pauseError, data.session_id);
@@ -1783,7 +1783,7 @@ export class AgentService {
     const targetSessionId = sessionId || this.currentSessionId();
     const session = this.sessions().find(s => s.session_id === targetSessionId);
     const targetUrl = videoUrl || session?.video_url || null;
-    const goalTitle = title || session?.initial_goal || (targetSessionId ? `Task: ${targetSessionId.slice(0, 8)}...` : 'Screen Recording');
+    const goalTitle = title || session?.initial_goal || (targetSessionId ? `任务：${targetSessionId.slice(0, 8)}...` : '屏幕录制');
 
     this.activeVideoTitle.set(goalTitle);
     this.isVideoWindowOpen.set(true);
@@ -1818,7 +1818,7 @@ export class AgentService {
     this.videoWaitStartedAt = Date.now();
     this.isVideoLoading.set(true);
     this.recordingPlaybackStatus.set('processing');
-    this.recordingPlaybackMessage.set('Loading screen recording...');
+    this.recordingPlaybackMessage.set('正在加载屏幕录制...');
     if (targetUrl) {
       this.playerMode?.set('video');
     } else if (this.hasCurrentSessionStepFrames?.()) {
@@ -1870,7 +1870,7 @@ export class AgentService {
     this.shouldAutoplayVideo.set(true);
     this.isVideoLoading.set(true);
     this.recordingPlaybackStatus.set('processing');
-    this.recordingPlaybackMessage.set('Finalizing screen recording...');
+    this.recordingPlaybackMessage.set('正在生成屏幕录制文件...');
     this.requestSessionVideo(sessionId, this.videoRequestGeneration);
   }
 
@@ -1901,7 +1901,7 @@ export class AgentService {
           this.activeVideoSegments.set([]);
           this.isVideoLoading.set(true);
           this.recordingPlaybackStatus.set('processing');
-          this.recordingPlaybackMessage.set('Finalizing screen recording...');
+          this.recordingPlaybackMessage.set('正在生成屏幕录制文件...');
           this.scheduleVideoRetry(sessionId, generation, res.retry_after_ms);
           return;
         }
@@ -1913,8 +1913,8 @@ export class AgentService {
         this.recordingPlaybackStatus.set(status === 'failed' ? 'failed' : 'unavailable');
         this.recordingPlaybackMessage.set(
           res.message || (status === 'failed'
-            ? 'Recording finalization failed.'
-            : 'No screen recording is available for this task.')
+            ? '录制文件生成失败。'
+            : '该任务没有可用的屏幕录制。')
         );
         if (this.hasCurrentSessionStepFrames?.()) {
           this.playerMode?.set('steps');
@@ -1930,7 +1930,7 @@ export class AgentService {
         }
         this.isVideoLoading.set(false);
         this.recordingPlaybackStatus.set('failed');
-        this.recordingPlaybackMessage.set('Unable to load the screen recording.');
+        this.recordingPlaybackMessage.set('无法加载屏幕录制。');
         if (this.hasCurrentSessionStepFrames?.()) {
           this.playerMode?.set('steps');
         }
@@ -1943,7 +1943,7 @@ export class AgentService {
     if (Date.now() - this.videoWaitStartedAt > 120_000) {
       this.isVideoLoading.set(false);
       this.recordingPlaybackStatus.set('failed');
-      this.recordingPlaybackMessage.set('Recording finalization timed out. You can retry.');
+      this.recordingPlaybackMessage.set('录制文件生成超时，你可以重试。');
       return;
     }
     const delay = Math.max(500, Math.min(3000, retryAfterMs));

@@ -288,20 +288,20 @@ export function drawActionCoordinatesOnOverlay(
 
       if (dirStr) {
         let sx = 500, sy = 750, ex = 500, ey = 250;
-        let label = 'SWIPE';
+        let label = '滑动';
 
         if (dirStr.includes('up') || dirStr.includes('top') || actionName.includes('up')) {
           sx = 500; sy = 750; ex = 500; ey = 250;
-          label = 'SWIPE UP';
+          label = '上滑';
         } else if (dirStr.includes('down') || dirStr.includes('bottom') || actionName.includes('down')) {
           sx = 500; sy = 250; ex = 500; ey = 750;
-          label = 'SWIPE DOWN';
+          label = '下滑';
         } else if (dirStr.includes('left') || actionName.includes('left')) {
           sx = 800; sy = 500; ex = 200; ey = 500;
-          label = 'SWIPE LEFT';
+          label = '左滑';
         } else if (dirStr.includes('right') || actionName.includes('right')) {
           sx = 200; sy = 500; ex = 800; ey = 500;
-          label = 'SWIPE RIGHT';
+          label = '右滑';
         }
 
         createLineMarker(sx, sy, ex, ey, naturalWidth, naturalHeight, overlay, true, label);

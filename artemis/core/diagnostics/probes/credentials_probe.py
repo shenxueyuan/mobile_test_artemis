@@ -78,7 +78,7 @@ class LLMCredentialsProbe(BaseProbe):
             configured_providers.append(
                 {
                     "provider": "openai",
-                    "label": "ChatGPT",
+                    "label": "OpenAI 兼容端点" if settings.OPENAI_BASE_URL else "ChatGPT",
                     "masked": self._mask_key(o_val),
                     "raw_key": o_val,
                     "key": o_val,
@@ -126,9 +126,9 @@ class LLMCredentialsProbe(BaseProbe):
         for env_var, label, prov_id in [
             ("DEEPSEEK_API_KEY", "DeepSeek", "deepseek"),
             ("GROQ_API_KEY", "Groq", "groq"),
-            ("OPENAI_BASE_URL", "Custom OpenAI Endpoint", "custom"),
-            ("OLLAMA_BASE_URL", "Local Ollama", "ollama"),
-            ("VLLM_BASE_URL", "vLLM Endpoint", "vllm"),
+            ("OPENAI_BASE_URL", "自定义 OpenAI 端点", "custom"),
+            ("OLLAMA_BASE_URL", "本地 Ollama", "ollama"),
+            ("VLLM_BASE_URL", "vLLM 端点", "vllm"),
             ("VERTEX_AI_PROJECT", "Google Cloud Vertex AI", "vertexai"),
         ]:
             val = os.environ.get(env_var)
@@ -168,17 +168,17 @@ class LLMCredentialsProbe(BaseProbe):
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Multimodal LLM API Key",
+                title="多模态 LLM API Key",
                 status=ProbeStatus.PASS,
                 is_blocker=self.is_blocker,
-                summary="Active (Gemini)",
-                description=f"Gemini multimodal API credential is active ({masked}) and ready for vision and reasoning.",
+                summary="已启用（Gemini）",
+                description=f"Gemini 多模态 API 凭据已启用（{masked}），可用于视觉感知与推理。",
                 metadata=metadata,
                 actions=[
                     ProbeAction(
                         action_type="hint",
-                        label="Provider Active",
-                        payload="Gemini 2.5 Flash / Pro Multimodal Engine is enabled.",
+                        label="服务商已启用",
+                        payload="Gemini 2.5 Flash / Pro 多模态引擎已启用。",
                     )
                 ],
             )
@@ -189,17 +189,17 @@ class LLMCredentialsProbe(BaseProbe):
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Multimodal LLM API Key",
+                title="多模态 LLM API Key",
                 status=ProbeStatus.PASS,
                 is_blocker=self.is_blocker,
-                summary=f"Active ({first_p['label']})",
-                description=f"{first_p['label']} multimodal API credential is active ({first_p['masked']}).",
+                summary=f"已启用（{first_p['label']}）",
+                description=f"{first_p['label']} 多模态 API 凭据已启用（{first_p['masked']}）。",
                 metadata=metadata,
                 actions=[
                     ProbeAction(
                         action_type="hint",
-                        label="Provider Active",
-                        payload=f"{first_p['label']} multimodal vision endpoint is active.",
+                        label="服务商已启用",
+                        payload=f"{first_p['label']} 多模态视觉端点已启用。",
                     )
                 ],
             )
@@ -208,21 +208,21 @@ class LLMCredentialsProbe(BaseProbe):
         return ProbeResult(
             id=self.probe_id,
             category=self.category,
-            title="Multimodal LLM API Key",
+            title="多模态 LLM API Key",
             status=ProbeStatus.FAIL,
             is_blocker=self.is_blocker,
-            summary="Key Missing",
-            description="No Multimodal LLM credential (e.g. GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY) found in environment or .env file.",
+            summary="缺少 Key",
+            description="在环境变量或 .env 文件中未找到多模态 LLM 凭据（例如 GEMINI_API_KEY、OPENAI_API_KEY、ANTHROPIC_API_KEY）。",
             metadata=metadata,
             actions=[
                 ProbeAction(
                     action_type="command",
-                    label="Run Artemis Init",
+                    label="运行 artemis init",
                     payload="artemis init",
                 ),
                 ProbeAction(
                     action_type="link",
-                    label="Get Google AI Studio Key",
+                    label="获取 Google AI Studio Key",
                     payload="https://aistudio.google.com/app/apikey",
                 ),
             ],
@@ -262,17 +262,17 @@ class VisionOCRProbe(BaseProbe):
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Vision OCR API Key (Optional)",
+                title="Vision OCR API Key（可选）",
                 status=ProbeStatus.PASS,
                 is_blocker=False,
-                summary="Active & Configured",
-                description=f"Google Cloud Vision OCR ({masked}) is active for image text recognition.",
+                summary="已启用并配置",
+                description=f"Google Cloud Vision OCR（{masked}）已启用，可进行图像文字识别。",
                 metadata={"configured": True, "masked_key": masked, "key": val, "raw_key": val},
                 actions=[
                     ProbeAction(
                         action_type="hint",
-                        label="OCR Enabled",
-                        payload="OCR is active and will fuse text with UI XML hierarchy.",
+                        label="OCR 已启用",
+                        payload="OCR 已启用，会将文字与 UI XML 层级融合。",
                     )
                 ],
             )
@@ -280,17 +280,17 @@ class VisionOCRProbe(BaseProbe):
         return ProbeResult(
             id=self.probe_id,
             category=self.category,
-            title="Vision OCR API Key (Optional)",
+            title="Vision OCR API Key（可选）",
             status=ProbeStatus.PASS,
             is_blocker=False,
-            summary="Not Configured (Optional)",
-            description="OCR_API_KEY is not set. Perception uses the UI XML hierarchy without OCR.",
+            summary="未配置（可选）",
+            description="未设置 OCR_API_KEY。感知将仅使用 UI XML 层级，不启用 OCR。",
             metadata={"configured": False},
             actions=[
                 ProbeAction(
                     action_type="hint",
-                    label="Standard XML Perception",
-                    payload="Artemis uses pure UI layout parsing and Set-of-Marks visual grounding.",
+                    label="标准 XML 感知",
+                    payload="Artemis 使用纯 UI 布局解析与 Set-of-Marks 视觉定位。",
                 )
             ],
         )

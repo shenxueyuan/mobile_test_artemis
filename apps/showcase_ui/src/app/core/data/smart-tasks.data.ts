@@ -47,29 +47,29 @@ export interface SmartSuggestion {
  */
 export const APP_REGISTRY: Record<string, AppReference> = {
   // Google Suite & System
-  'com.google.android.apps.maps': { name: 'Maps', icon: 'explore', pkg: 'com.google.android.apps.maps', category: 'navigation' },
+  'com.google.android.apps.maps': { name: '谷歌地图', icon: 'explore', pkg: 'com.google.android.apps.maps', category: 'navigation' },
   'com.google.android.gm': { name: 'Gmail', icon: 'mail', pkg: 'com.google.android.gm', category: 'productivity' },
   'com.android.chrome': { name: 'Chrome', icon: 'public', pkg: 'com.android.chrome', category: 'browser' },
   'com.google.android.youtube': { name: 'YouTube', icon: 'smart_display', pkg: 'com.google.android.youtube', category: 'entertainment' },
-  'com.android.settings': { name: 'Settings', icon: 'settings', pkg: 'com.android.settings', category: 'system' },
-  'com.google.android.deskclock': { name: 'Clock', icon: 'timer', pkg: 'com.google.android.deskclock', category: 'utility' },
-  'com.android.deskclock': { name: 'Clock', icon: 'timer', pkg: 'com.android.deskclock', category: 'utility' },
-  'com.google.android.calculator': { name: 'Calculator', icon: 'calculate', pkg: 'com.google.android.calculator', category: 'utility' },
-  'com.android.calculator2': { name: 'Calculator', icon: 'calculate', pkg: 'com.android.calculator2', category: 'utility' },
-  'com.google.android.apps.photos': { name: 'Photos', icon: 'photo_library', pkg: 'com.google.android.apps.photos', category: 'media' },
-  'com.google.android.calendar': { name: 'Calendar', icon: 'calendar_month', pkg: 'com.google.android.calendar', category: 'productivity' },
-  'com.google.android.keep': { name: 'Keep Notes', icon: 'note_alt', pkg: 'com.google.android.keep', category: 'productivity' },
-  'com.android.vending': { name: 'Play Store', icon: 'storefront', pkg: 'com.android.vending', category: 'tools' },
-  'com.google.android.apps.messaging': { name: 'Messages', icon: 'chat', pkg: 'com.google.android.apps.messaging', category: 'communication' },
+  'com.android.settings': { name: '设置', icon: 'settings', pkg: 'com.android.settings', category: 'system' },
+  'com.google.android.deskclock': { name: '时钟', icon: 'timer', pkg: 'com.google.android.deskclock', category: 'utility' },
+  'com.android.deskclock': { name: '时钟', icon: 'timer', pkg: 'com.android.deskclock', category: 'utility' },
+  'com.google.android.calculator': { name: '计算器', icon: 'calculate', pkg: 'com.google.android.calculator', category: 'utility' },
+  'com.android.calculator2': { name: '计算器', icon: 'calculate', pkg: 'com.android.calculator2', category: 'utility' },
+  'com.google.android.apps.photos': { name: '相册', icon: 'photo_library', pkg: 'com.google.android.apps.photos', category: 'media' },
+  'com.google.android.calendar': { name: '日历', icon: 'calendar_month', pkg: 'com.google.android.calendar', category: 'productivity' },
+  'com.google.android.keep': { name: 'Keep 笔记', icon: 'note_alt', pkg: 'com.google.android.keep', category: 'productivity' },
+  'com.android.vending': { name: 'Play 商店', icon: 'storefront', pkg: 'com.android.vending', category: 'tools' },
+  'com.google.android.apps.messaging': { name: '信息', icon: 'chat', pkg: 'com.google.android.apps.messaging', category: 'communication' },
 
   // Popular Ecosystem Apps
-  'com.tencent.mm': { name: 'WeChat', icon: 'forum', pkg: 'com.tencent.mm', category: 'social' },
-  'com.xingin.xhs': { name: 'Xiaohongshu', icon: 'auto_stories', pkg: 'com.xingin.xhs', category: 'social' },
-  'com.sankuai.meituan': { name: 'Meituan', icon: 'restaurant', pkg: 'com.sankuai.meituan', category: 'lifestyle' },
-  'com.dianping.v1': { name: 'Dianping', icon: 'star', pkg: 'com.dianping.v1', category: 'lifestyle' },
-  'tv.danmaku.bili': { name: 'Bilibili', icon: 'video_library', pkg: 'tv.danmaku.bili', category: 'entertainment' },
-  'com.eg.android.AlipayGphone': { name: 'Alipay', icon: 'account_balance_wallet', pkg: 'com.eg.android.AlipayGphone', category: 'finance' },
-  'com.netease.cloudmusic': { name: 'NetEase Music', icon: 'headphones', pkg: 'com.netease.cloudmusic', category: 'entertainment' },
+  'com.tencent.mm': { name: '微信', icon: 'forum', pkg: 'com.tencent.mm', category: 'social' },
+  'com.xingin.xhs': { name: '小红书', icon: 'auto_stories', pkg: 'com.xingin.xhs', category: 'social' },
+  'com.sankuai.meituan': { name: '美团', icon: 'restaurant', pkg: 'com.sankuai.meituan', category: 'lifestyle' },
+  'com.dianping.v1': { name: '大众点评', icon: 'star', pkg: 'com.dianping.v1', category: 'lifestyle' },
+  'tv.danmaku.bili': { name: '哔哩哔哩', icon: 'video_library', pkg: 'tv.danmaku.bili', category: 'entertainment' },
+  'com.eg.android.AlipayGphone': { name: '支付宝', icon: 'account_balance_wallet', pkg: 'com.eg.android.AlipayGphone', category: 'finance' },
+  'com.netease.cloudmusic': { name: '网易云音乐', icon: 'headphones', pkg: 'com.netease.cloudmusic', category: 'entertainment' },
   'com.spotify.music': { name: 'Spotify', icon: 'music_note', pkg: 'com.spotify.music', category: 'entertainment' }
 };
 
@@ -80,27 +80,27 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 1. Google Maps
   {
     id: 'maps_coffee',
-    title: 'Find Specialty Coffee',
-    description: 'Search nearby top-rated cafes in Google Maps',
-    goal: 'Open Google Maps, search for top-rated specialty coffee shops nearby, and view the top result details.',
+    title: '搜索精品咖啡店',
+    description: '在谷歌地图中搜索附近评分最高的咖啡店',
+    goal: '打开谷歌地图，搜索附近评分最高的精品咖啡店，并查看排名第一的结果详情。',
     profile: 'flash',
     category: 'flash',
-    tag: 'Maps',
-    apps: [{ name: 'Maps', icon: 'explore', pkg: 'com.google.android.apps.maps' }],
+    tag: '谷歌地图',
+    apps: [{ name: '谷歌地图', icon: 'explore', pkg: 'com.google.android.apps.maps' }],
     requiredPackages: ['com.google.android.apps.maps'],
     priority: 95
   },
   {
     id: 'pro_commute_share',
-    title: 'Commute ETA & Message Draft',
-    description: 'Check transit time on Maps and draft arrival ETA in Messages',
-    goal: 'Open Google Maps to check commute time to the International Airport, calculate arrival time, then open Messages and draft an ETA text message.',
+    title: '通勤耗时与短信草稿',
+    description: '在地图中查询通行时间，并在信息中拟好到达时间短信',
+    goal: '打开谷歌地图查询到国际机场的通勤时间，计算到达时刻，然后打开「信息」并拟一条告知到达时间的短信。',
     profile: 'pro',
     category: 'cross_app',
-    tag: 'Maps + Messages',
+    tag: '谷歌地图 + 信息',
     apps: [
-      { name: 'Maps', icon: 'explore', pkg: 'com.google.android.apps.maps' },
-      { name: 'Messages', icon: 'chat', pkg: 'com.google.android.apps.messaging' }
+      { name: '谷歌地图', icon: 'explore', pkg: 'com.google.android.apps.maps' },
+      { name: '信息', icon: 'chat', pkg: 'com.google.android.apps.messaging' }
     ],
     requiredPackages: ['com.google.android.apps.maps', 'com.google.android.apps.messaging'],
     matchMode: 'all',
@@ -110,9 +110,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 2. Gmail
   {
     id: 'gmail_receipts',
-    title: 'Search Order Receipts',
-    description: 'Find recent flight or delivery confirmation emails in Gmail',
-    goal: 'Open Gmail and search for recent flight or package delivery confirmation emails.',
+    title: '搜索订单回执邮件',
+    description: '在 Gmail 中查找最近的航班或快递确认邮件',
+    goal: '打开 Gmail，搜索最近的航班或快递确认邮件。',
     profile: 'flash',
     category: 'flash',
     tag: 'Gmail',
@@ -122,15 +122,15 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   },
   {
     id: 'pro_email_to_calendar',
-    title: 'Email Itinerary to Calendar',
-    description: 'Extract flight or event dates from Gmail and schedule in Calendar',
-    goal: 'Open Gmail to find the latest event invitation or itinerary, extract dates and location, then open Google Calendar and create a corresponding calendar event.',
+    title: '邮件行程写入日历',
+    description: '从 Gmail 中提取航班或活动日期并创建日历事件',
+    goal: '打开 Gmail 找到最新的活动邀请或行程邮件，提取日期和地点，然后打开日历并创建对应的日程事件。',
     profile: 'pro',
     category: 'cross_app',
-    tag: 'Gmail + Calendar',
+    tag: 'Gmail + 日历',
     apps: [
       { name: 'Gmail', icon: 'mail', pkg: 'com.google.android.gm' },
-      { name: 'Calendar', icon: 'calendar_month', pkg: 'com.google.android.calendar' }
+      { name: '日历', icon: 'calendar_month', pkg: 'com.google.android.calendar' }
     ],
     requiredPackages: ['com.google.android.gm'],
     priority: 94
@@ -139,9 +139,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 3. Chrome
   {
     id: 'chrome_research',
-    title: 'Search AI News Breakthroughs',
-    description: 'Search latest multimodal AI developments in Chrome browser',
-    goal: 'Open Chrome browser and search for latest breakthroughs in multimodal mobile AI agents.',
+    title: '搜索 AI 最新进展',
+    description: '在 Chrome 浏览器中搜索多模态 AI 的最新进展',
+    goal: '打开 Chrome 浏览器，搜索多模态移动端 AI Agent 的最新进展。',
     profile: 'flash',
     category: 'flash',
     tag: 'Chrome',
@@ -151,15 +151,15 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   },
   {
     id: 'pro_research_keep',
-    title: 'Product Research & Notes Note',
-    description: 'Compare top 3 headphones on Chrome and record comparison in Keep',
-    goal: 'Open Chrome, research top 3 noise-cancelling headphones comparing price and battery life, then write a structured comparison summary note in Keep Notes.',
+    title: '产品调研与笔记',
+    description: '在 Chrome 中对比三款热门耳机并记录到 Keep 笔记',
+    goal: '打开 Chrome，调研三款降噪耳机并对比价格与续航，然后在 Keep 笔记中写一篇结构化的对比总结。',
     profile: 'pro',
     category: 'pro',
     tag: 'Chrome + Keep',
     apps: [
       { name: 'Chrome', icon: 'public', pkg: 'com.android.chrome' },
-      { name: 'Keep Notes', icon: 'note_alt', pkg: 'com.google.android.keep' }
+      { name: 'Keep 笔记', icon: 'note_alt', pkg: 'com.google.android.keep' }
     ],
     requiredPackages: ['com.android.chrome'],
     priority: 91
@@ -168,9 +168,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 4. YouTube
   {
     id: 'youtube_lofi',
-    title: 'Play Lo-Fi Music Radio',
-    description: 'Search and play a Lo-Fi hip hop live stream on YouTube',
-    goal: 'Open YouTube, search for "Lofi hip hop beats relaxing radio" and tap on the live stream.',
+    title: '播放 Lo-Fi 音乐电台',
+    description: '在 YouTube 中搜索并播放 Lo-Fi 嘻哈直播',
+    goal: '打开 YouTube，搜索 "Lofi hip hop beats relaxing radio" 并点击进入直播间。',
     profile: 'flash',
     category: 'flash',
     tag: 'YouTube',
@@ -182,25 +182,25 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 5. Settings
   {
     id: 'settings_display_wifi',
-    title: 'Dark Mode & Wi-Fi Check',
-    description: 'Toggle dark theme and verify network connection in Settings',
-    goal: 'Open Settings app, navigate to Display settings, ensure Dark theme is enabled, and check Wi-Fi connection status.',
+    title: '深色模式与 Wi-Fi 检查',
+    description: '在设置中切换深色主题并检查网络连接状态',
+    goal: '打开设置应用，进入显示设置，确认深色主题已开启，并检查 Wi-Fi 连接状态。',
     profile: 'flash',
     category: 'flash',
-    tag: 'Settings',
-    apps: [{ name: 'Settings', icon: 'settings', pkg: 'com.android.settings' }],
+    tag: '设置',
+    apps: [{ name: '设置', icon: 'settings', pkg: 'com.android.settings' }],
     requiredPackages: ['com.android.settings'],
     priority: 87
   },
   {
     id: 'pro_settings_qa',
-    title: 'Subsystem Health & Crash Probe',
-    description: 'Traverse Settings submenus to verify screens and check for crash dialogs',
-    goal: 'Explore Settings submenus (Network, Connected devices, Apps, Battery, Storage), verify each screen loads properly without ANR or crash dialogs, and summarize results.',
+    title: '子模块健康度与崩溃排查',
+    description: '遍历设置子菜单，校验各页面并检查是否有崩溃弹窗',
+    goal: '遍历设置的各个子菜单（网络、已连接设备、应用、电池、存储），确认每个页面都能正常加载，没有 ANR 或崩溃弹窗，并汇总结果。',
     profile: 'pro',
     category: 'monitor',
-    tag: 'Settings QA',
-    apps: [{ name: 'Settings', icon: 'settings', pkg: 'com.android.settings' }],
+    tag: '设置巡检',
+    apps: [{ name: '设置', icon: 'settings', pkg: 'com.android.settings' }],
     requiredPackages: ['com.android.settings'],
     priority: 93
   },
@@ -208,13 +208,13 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 6. Clock
   {
     id: 'clock_timer',
-    title: '25-Min Pomodoro Timer',
-    description: 'Start a 25-minute focus countdown timer in Clock app',
-    goal: 'Open Clock app, switch to Timer tab, set 25 minutes and start the countdown timer.',
+    title: '25 分钟番茄钟',
+    description: '在时钟应用中启动 25 分钟专注倒计时',
+    goal: '打开时钟应用，切换到计时器标签页，设置 25 分钟并开始倒计时。',
     profile: 'flash',
     category: 'flash',
-    tag: 'Clock',
-    apps: [{ name: 'Clock', icon: 'timer', pkg: 'com.google.android.deskclock' }],
+    tag: '时钟',
+    apps: [{ name: '时钟', icon: 'timer', pkg: 'com.google.android.deskclock' }],
     requiredPackages: ['com.google.android.deskclock', 'com.android.deskclock'],
     priority: 86
   },
@@ -222,13 +222,13 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 7. Calculator
   {
     id: 'calc_gratuity',
-    title: 'Split Bill & Calculate Tip',
-    description: 'Calculate 18% gratuity on $186.40 for 3 people in Calculator',
-    goal: 'Open Calculator and calculate 18% tip on a bill of $186.40, then divide by 3 people.',
+    title: '分摊账单并计算小费',
+    description: '在计算器中计算 186.40 美元账单的 18% 小费并由 3 人分摊',
+    goal: '打开计算器，计算 186.40 美元账单 18% 的小费，然后除以 3 人分摊。',
     profile: 'flash',
     category: 'flash',
-    tag: 'Calculator',
-    apps: [{ name: 'Calculator', icon: 'calculate', pkg: 'com.google.android.calculator' }],
+    tag: '计算器',
+    apps: [{ name: '计算器', icon: 'calculate', pkg: 'com.google.android.calculator' }],
     requiredPackages: ['com.google.android.calculator', 'com.android.calculator2'],
     priority: 84
   },
@@ -236,13 +236,13 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 8. Photos
   {
     id: 'photos_inspect',
-    title: 'Inspect Recent Screenshot',
-    description: 'Open Google Photos and review the latest screenshot taken',
-    goal: 'Open Google Photos and view the most recent screenshot in the screenshots album.',
+    title: '查看最新截图',
+    description: '打开相册并查看最近拍摄的截图',
+    goal: '打开相册，在截图相册中查看最近的一张截图。',
     profile: 'flash',
     category: 'flash',
-    tag: 'Photos',
-    apps: [{ name: 'Photos', icon: 'photo_library', pkg: 'com.google.android.apps.photos' }],
+    tag: '相册',
+    apps: [{ name: '相册', icon: 'photo_library', pkg: 'com.google.android.apps.photos' }],
     requiredPackages: ['com.google.android.apps.photos'],
     priority: 82
   },
@@ -250,27 +250,27 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 9. WeChat
   {
     id: 'wechat_browse',
-    title: 'Check WeChat Messages',
-    description: 'Open WeChat and view top recent chat conversations',
-    goal: 'Open WeChat and view the top recent chat messages.',
+    title: '查看微信消息',
+    description: '打开微信并查看最近的热门聊天会话',
+    goal: '打开微信，查看最近的热门聊天消息。',
     profile: 'flash',
     category: 'flash',
-    tag: 'WeChat',
-    apps: [{ name: 'WeChat', icon: 'forum', pkg: 'com.tencent.mm' }],
+    tag: '微信',
+    apps: [{ name: '微信', icon: 'forum', pkg: 'com.tencent.mm' }],
     requiredPackages: ['com.tencent.mm'],
     priority: 89
   },
   {
     id: 'pro_wechat_to_calendar',
-    title: 'WeChat Notice to Calendar',
-    description: 'Extract meeting notice from WeChat chat and add to Calendar',
-    goal: 'Open WeChat, locate the latest meeting announcement or event message in the top chat, extract the time and topic, then open Calendar and schedule an event.',
+    title: '微信通知写入日历',
+    description: '从微信聊天中提取会议通知并添加到日历',
+    goal: '打开微信，在置顶聊天中找到最新的会议通知或活动消息，提取时间和主题，然后打开日历创建日程。',
     profile: 'pro',
     category: 'cross_app',
-    tag: 'WeChat + Calendar',
+    tag: '微信 + 日历',
     apps: [
-      { name: 'WeChat', icon: 'forum', pkg: 'com.tencent.mm' },
-      { name: 'Calendar', icon: 'calendar_month', pkg: 'com.google.android.calendar' }
+      { name: '微信', icon: 'forum', pkg: 'com.tencent.mm' },
+      { name: '日历', icon: 'calendar_month', pkg: 'com.google.android.calendar' }
     ],
     requiredPackages: ['com.tencent.mm'],
     priority: 93
@@ -279,13 +279,13 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 10. Xiaohongshu
   {
     id: 'xhs_coffee_guide',
-    title: 'RED Cafe Guide Search',
-    description: 'Search trending specialty cafe reviews on Xiaohongshu',
-    goal: 'Open Xiaohongshu, search for top-rated specialty coffee shops, and view the top post.',
+    title: '小红书咖啡店攻略',
+    description: '在小红书上搜索热门的精品咖啡店测评',
+    goal: '打开小红书，搜索评分最高的精品咖啡店，并查看排名第一的笔记。',
     profile: 'flash',
     category: 'flash',
-    tag: 'Xiaohongshu',
-    apps: [{ name: 'Xiaohongshu', icon: 'auto_stories', pkg: 'com.xingin.xhs' }],
+    tag: '小红书',
+    apps: [{ name: '小红书', icon: 'auto_stories', pkg: 'com.xingin.xhs' }],
     requiredPackages: ['com.xingin.xhs'],
     priority: 87
   },
@@ -293,13 +293,13 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 11. Meituan / Dianping
   {
     id: 'meituan_ramen_search',
-    title: 'Meituan Food Search',
-    description: 'Search top-rated Ramen nearby on Meituan or Dianping',
-    goal: 'Open Meituan or Dianping, search for top-rated Ramen nearby, and view top restaurant rating.',
+    title: '美团美食搜索',
+    description: '在美团或大众点评上搜索附近评分最高的拉面店',
+    goal: '打开美团或大众点评，搜索附近评分最高的拉面店，并查看排名第一的餐厅评分。',
     profile: 'flash',
     category: 'flash',
-    tag: 'Meituan',
-    apps: [{ name: 'Meituan', icon: 'restaurant', pkg: 'com.sankuai.meituan' }],
+    tag: '美团',
+    apps: [{ name: '美团', icon: 'restaurant', pkg: 'com.sankuai.meituan' }],
     requiredPackages: ['com.sankuai.meituan', 'com.dianping.v1'],
     priority: 86
   },
@@ -307,13 +307,13 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 12. Bilibili
   {
     id: 'bilibili_stream',
-    title: 'Bilibili Tech Video',
-    description: 'Search and play an AI Agent tutorial video on Bilibili',
-    goal: 'Open Bilibili, search for "AI Agent Architecture", and play the top matching video.',
+    title: '哔哩哔哩科技视频',
+    description: '在哔哩哔哩上搜索并播放 AI Agent 教程视频',
+    goal: '打开哔哩哔哩，搜索 "AI Agent 架构"，并播放排名第一的视频。',
     profile: 'flash',
     category: 'flash',
-    tag: 'Bilibili',
-    apps: [{ name: 'Bilibili', icon: 'video_library', pkg: 'tv.danmaku.bili' }],
+    tag: '哔哩哔哩',
+    apps: [{ name: '哔哩哔哩', icon: 'video_library', pkg: 'tv.danmaku.bili' }],
     requiredPackages: ['tv.danmaku.bili'],
     priority: 85
   },
@@ -321,13 +321,13 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 13. Play Store
   {
     id: 'pro_playstore_review',
-    title: 'Play Store App Review Study',
-    description: 'Compare top task management apps and ratings on Google Play',
-    goal: 'Open Google Play Store, search for top rated task management apps, compare ratings and latest user reviews of the top 2 candidates, and record recommendations.',
+    title: 'Play 商店应用评测调研',
+    description: '在 Google Play 上对比热门任务管理应用及评分',
+    goal: '打开 Google Play 商店，搜索评分最高的任务管理应用，对比前两名候选应用的评分与最新用户评论，并记录推荐结论。',
     profile: 'pro',
     category: 'pro',
-    tag: 'Play Store',
-    apps: [{ name: 'Play Store', icon: 'storefront', pkg: 'com.android.vending' }],
+    tag: 'Play 商店',
+    apps: [{ name: 'Play 商店', icon: 'storefront', pkg: 'com.android.vending' }],
     requiredPackages: ['com.android.vending'],
     priority: 88
   }

@@ -69,17 +69,17 @@ class ToolchainProbe(BaseProbe):
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Video Recording Toolchain",
+                title="视频录制工具链",
                 status=ProbeStatus.PASS,
                 is_blocker=self.is_blocker,
-                summary="Ready (FFmpeg + scrcpy)",
-                description=f"FFmpeg ({ffmpeg_path}) and scrcpy ({scrcpy_path}) are available. Live stream and high-speed video replays are active.",
+                summary="就绪（FFmpeg + scrcpy）",
+                description=f"FFmpeg（{ffmpeg_path}）与 scrcpy（{scrcpy_path}）均可用。实时投屏与高速视频回放已启用。",
                 metadata=metadata,
                 actions=[
                     ProbeAction(
                         action_type="hint",
-                        label="Toolchain Active",
-                        payload="FFmpeg and scrcpy are installed and active.",
+                        label="工具链可用",
+                        payload="FFmpeg 与 scrcpy 已安装并可用。",
                     )
                 ],
             )
@@ -91,14 +91,14 @@ class ToolchainProbe(BaseProbe):
             actions.append(
                 ProbeAction(
                     action_type="command",
-                    label="Install via WinGet",
+                    label="通过 WinGet 安装",
                     payload="winget install Gyan.FFmpeg Genymobile.scrcpy",
                 )
             )
             actions.append(
                 ProbeAction(
                     action_type="command",
-                    label="Run PowerShell Setup",
+                    label="运行 PowerShell 安装脚本",
                     payload="powershell -ExecutionPolicy Bypass -File scripts/install_deps.ps1",
                 )
             )
@@ -106,7 +106,7 @@ class ToolchainProbe(BaseProbe):
             actions.append(
                 ProbeAction(
                     action_type="command",
-                    label="Install via Homebrew",
+                    label="通过 Homebrew 安装",
                     payload="brew install ffmpeg scrcpy",
                 )
             )
@@ -114,14 +114,14 @@ class ToolchainProbe(BaseProbe):
             actions.append(
                 ProbeAction(
                     action_type="command",
-                    label="Install on Linux",
+                    label="在 Linux 上安装",
                     payload="sudo apt-get install -y ffmpeg scrcpy",
                 )
             )
             actions.append(
                 ProbeAction(
                     action_type="command",
-                    label="One-Click Install Script",
+                    label="一键安装脚本",
                     payload="bash scripts/install_deps.sh",
                 )
             )
@@ -129,11 +129,11 @@ class ToolchainProbe(BaseProbe):
         return ProbeResult(
             id=self.probe_id,
             category=self.category,
-            title="Video Recording Toolchain",
+            title="视频录制工具链",
             status=ProbeStatus.FAIL,
             is_blocker=self.is_blocker,
-            summary=f"Missing {missing_str}",
-            description=f"Video toolchain is required for screen streaming and test replay recording. Missing: {missing_str}.",
+            summary=f"缺少 {missing_str}",
+            description=f"屏幕投屏与测试回放录制需要视频工具链。当前缺少：{missing_str}。",
             metadata=metadata,
             actions=actions,
         )

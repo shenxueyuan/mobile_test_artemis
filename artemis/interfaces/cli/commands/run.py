@@ -89,7 +89,7 @@ async def execute_task(
         os.environ["ARTEMIS_TASK_INGRESS"] = "cli"
     publish_startup_progress(
         "configuration",
-        "Loading the run configuration",
+        "正在加载运行配置",
         session_id=str(effective_sid) if effective_sid else None,
     )
 

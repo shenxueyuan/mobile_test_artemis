@@ -274,7 +274,7 @@ async def test_submission_probe_skips_full_device_enrichment(monkeypatch):
 
     result = await probe.probe_submission_readiness()
 
-    assert result.summary == "Connected"
+    assert result.summary == "已连接"
     assert result.metadata["submission_probe"] is True
     get_states.assert_awaited_once_with("adb")
     get_lock_state.assert_awaited_once_with("adb", "device-2", timeout_seconds=1.0)
@@ -301,7 +301,7 @@ async def test_submission_probe_fails_closed_when_lock_state_is_unknown(monkeypa
 
     result = await probe.probe_submission_readiness()
 
-    assert result.summary == "Lock State Unknown"
+    assert result.summary == "锁屏状态未知"
     assert result.status == ProbeStatus.WARN
 
 
@@ -323,7 +323,7 @@ async def test_submission_probe_falls_back_to_unlocked_device(monkeypatch):
     result = await probe.probe_submission_readiness()
 
     assert result.status == ProbeStatus.PASS
-    assert result.summary == "Connected"
+    assert result.summary == "已连接"
     assert result.metadata["active_device"]["serial"] == "device-unlocked"
     assert result.metadata["active_device"]["is_locked"] is False
 
@@ -348,7 +348,7 @@ async def test_adb_probe_prefers_unlocked_device_when_one_is_locked(monkeypatch)
     result = await probe.probe()
 
     assert result.status == ProbeStatus.PASS
-    assert result.summary == "Connected"
+    assert result.summary == "已连接"
     assert result.metadata["active_device"]["serial"] == "dev-unlocked-2"
     assert result.metadata["active_device"]["is_locked"] is False
 

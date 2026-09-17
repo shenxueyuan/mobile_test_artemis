@@ -95,7 +95,7 @@ export class ChatInterfaceComponent {
       error: (err) => {
         console.error('Failed to submit task:', err);
         this.isSubmitting.set(false);
-        this.errorMessage.set(err.error?.detail || 'The runner is busy. Please wait for the current task to finish.');
+        this.errorMessage.set(err.error?.detail || '运行器正忙，请等待当前任务结束。');
         // Auto-dismiss error banner after 5 seconds
         setTimeout(() => {
           this.errorMessage.set(null);
@@ -133,7 +133,7 @@ export class ChatInterfaceComponent {
    * Clear all database data/history to start fresh
    */
   public clearHistory(): void {
-    if (!confirm('Are you sure you want to clear all tasks and history? This cannot be undone.')) {
+    if (!confirm('确定要清空所有任务与历史记录吗？此操作不可撤销。')) {
       return;
     }
     this.isSubmitting.set(true);
@@ -145,7 +145,7 @@ export class ChatInterfaceComponent {
       error: (err: any) => {
         console.error('Failed to clear history:', err);
         this.isSubmitting.set(false);
-        this.errorMessage.set(err.error?.detail || 'Failed to clear history.');
+        this.errorMessage.set(err.error?.detail || '清空历史记录失败。');
       }
     });
   }
@@ -167,7 +167,7 @@ export class ChatInterfaceComponent {
       error: (err: any) => {
         console.error(`Failed to delete task ${sessionId}:`, err);
         this.isSubmitting.set(false);
-        this.errorMessage.set(err.error?.detail || 'Failed to delete task.');
+        this.errorMessage.set(err.error?.detail || '删除任务失败。');
       }
     });
   }
@@ -189,6 +189,19 @@ export class ChatInterfaceComponent {
       return this.agentService.agentStatus() as 'running' | 'paused';
     }
     return 'completed';
+  }
+
+  public getTaskStatusLabel(session: Session): string {
+    const labels: Record<string, string> = {
+      running: '运行中',
+      paused: '已暂停',
+      completed: '已完成',
+      pending: '排队中',
+      failed: '失败',
+      cancelled: '已取消'
+    };
+    const status = this.getTaskStatus(session);
+    return labels[status] ?? status;
   }
 
   /**

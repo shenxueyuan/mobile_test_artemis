@@ -477,7 +477,7 @@ class TaskQueueService:
         state.current_profile = profile
         state.active_session_id = sess_id
 
-        cls._broadcast_startup_progress(sess_id, "launching", "Starting the execution process")
+        cls._broadcast_startup_progress(sess_id, "launching", "正在启动执行进程")
 
         # Broadcast session_started so all connected clients know the task has started
         cls._broadcast_event(
@@ -1109,7 +1109,7 @@ class TaskQueueService:
             state.queue_items.append(task_item)
             enqueued_tasks.append(task_item)
             cls._broadcast_startup_progress(
-                task_item["session_id"], "queued", "Task received and queued"
+                task_item["session_id"], "queued", "任务已接收并进入队列"
             )
 
         # Wake worker immediately

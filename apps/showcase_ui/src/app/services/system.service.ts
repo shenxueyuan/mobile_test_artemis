@@ -324,7 +324,7 @@ export class SystemService {
       status: 'starting',
       pid: null,
       serial: null,
-      stage_message: 'Spawning emulator process...',
+      stage_message: '正在启动模拟器进程...',
       progress_percent: 15,
       started_at: Date.now() / 1000,
       elapsed_seconds: 0,
@@ -346,13 +346,13 @@ export class SystemService {
         error: (err) => {
           console.error('Failed to launch emulator:', err);
           this.launchingAvd.set(null);
-          const errorMsg = err?.error?.detail || err?.message || 'Failed to start emulator process.';
+          const errorMsg = err?.error?.detail || err?.message || '模拟器进程启动失败。';
           this.emulatorLaunchState.set({
             avd_name: avdName,
             status: 'failed',
             pid: null,
             serial: null,
-            stage_message: 'Failed to initiate launch.',
+            stage_message: '启动失败。',
             progress_percent: 0,
             started_at: null,
             elapsed_seconds: 0,

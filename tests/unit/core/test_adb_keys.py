@@ -168,9 +168,9 @@ async def test_adb_probe_detects_corrupted_key_with_unauthorized_device(monkeypa
 
     result = await probe.probe()
     assert result.status == ProbeStatus.WARN
-    assert result.summary == "ADB Key Corrupted"
+    assert result.summary == "ADB 密钥损坏"
     assert "0 bytes" in result.description
-    assert any(a.label == "Auto-Heal ADB Keys" for a in result.actions)
+    assert any(a.label == "自动修复 ADB 密钥" for a in result.actions)
 
 
 @pytest.mark.asyncio

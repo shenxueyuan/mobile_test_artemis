@@ -238,8 +238,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     return [
       {
         kind: 'verify',
-        name: 'Result check',
-        ends: ['Off', 'Strict'],
+        name: '结果校验',
+        ends: ['关闭', '严格'],
         ladder: VERIFICATION_LEVELS,
         index: vi,
         level: VERIFICATION_LEVELS[vi],
@@ -247,8 +247,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       },
       {
         kind: 'explore',
-        name: 'Screen reading',
-        ends: ['Faster', 'Sharper'],
+        name: '屏幕读取',
+        ends: ['更快', '更精细'],
         ladder: EXPLORER_MODES,
         index: ei,
         level: EXPLORER_MODES[ei],
@@ -426,16 +426,16 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   public emuHypervisorTitle = computed(() => {
     const os = this.effectiveOs();
-    if (os === 'windows') return 'Enable Windows Hypervisor Platform (WHPX)';
-    if (os === 'darwin') return 'Verify macOS Hypervisor / Install Tools';
-    return 'Enable KVM Hardware Acceleration (Linux)';
+    if (os === 'windows') return '启用 Windows Hypervisor 平台（WHPX）';
+    if (os === 'darwin') return '检查 macOS Hypervisor / 安装工具';
+    return '启用 KVM 硬件加速（Linux）';
   });
 
   public emuHypervisorDesc = computed(() => {
     const os = this.effectiveOs();
-    if (os === 'windows') return 'Enable Windows Hypervisor Platform in PowerShell (Run as Administrator):';
-    if (os === 'darwin') return 'macOS uses native Hypervisor.framework. Install SDK tools via Homebrew (or Studio):';
-    return 'Ensure virtualization permissions are granted to your user account:';
+    if (os === 'windows') return '在 PowerShell 中启用 Windows Hypervisor 平台（以管理员身份运行）：';
+    if (os === 'darwin') return 'macOS 使用原生 Hypervisor.framework。可通过 Homebrew（或 Studio）安装 SDK 工具：';
+    return '请确保你的用户账号已获得虚拟化权限：';
   });
 
   public emuHypervisorCmd = computed(() => {
@@ -632,12 +632,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.isSavingGeminiKey.set(false);
         this.isGeminiKeyEdited.set(false);
-        this.geminiSaveMessage.set(res?.message || '✓ Gemini API key verified & saved successfully.');
+        this.geminiSaveMessage.set(res?.message || '✓ Gemini API Key 校验通过并已保存。');
         setTimeout(() => this.geminiSaveMessage.set(null), 5000);
       },
       error: (err) => {
         this.isSavingGeminiKey.set(false);
-        this.geminiSaveError.set(err?.error?.detail || err?.message || 'Failed to update Gemini API key.');
+        this.geminiSaveError.set(err?.error?.detail || err?.message || 'Gemini API Key 更新失败。');
       }
     });
   }
@@ -653,16 +653,16 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.systemService.updateApiKey('google', '', true).subscribe({
         next: (res) => {
           this.isSavingGeminiKey.set(false);
-          this.geminiSaveMessage.set(res?.message || '✓ Gemini API key cleared.');
+          this.geminiSaveMessage.set(res?.message || '✓ Gemini API Key 已清除。');
           setTimeout(() => this.geminiSaveMessage.set(null), 5000);
         },
         error: (err) => {
           this.isSavingGeminiKey.set(false);
-          this.geminiSaveError.set(err?.error?.detail || err?.message || 'Failed to clear Gemini API key.');
+          this.geminiSaveError.set(err?.error?.detail || err?.message || 'Gemini API Key 清除失败。');
         }
       });
     } else {
-      this.geminiSaveMessage.set('✓ Gemini API key cleared.');
+      this.geminiSaveMessage.set('✓ Gemini API Key 已清除。');
       setTimeout(() => this.geminiSaveMessage.set(null), 3000);
     }
   }
@@ -678,12 +678,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.isSavingOcrKey.set(false);
         this.isOcrKeyEdited.set(false);
-        this.ocrSaveMessage.set(res?.message || '✓ Vision OCR API key verified & saved.');
+        this.ocrSaveMessage.set(res?.message || '✓ Vision OCR API Key 校验通过并已保存。');
         setTimeout(() => this.ocrSaveMessage.set(null), 5000);
       },
       error: (err) => {
         this.isSavingOcrKey.set(false);
-        this.ocrSaveError.set(err?.error?.detail || err?.message || 'Failed to update Vision OCR key.');
+        this.ocrSaveError.set(err?.error?.detail || err?.message || 'Vision OCR Key 更新失败。');
       }
     });
   }
@@ -699,16 +699,16 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.systemService.updateApiKey('ocr', '', true).subscribe({
         next: (res) => {
           this.isSavingOcrKey.set(false);
-          this.ocrSaveMessage.set(res?.message || '✓ Vision OCR API key cleared.');
+          this.ocrSaveMessage.set(res?.message || '✓ Vision OCR API Key 已清除。');
           setTimeout(() => this.ocrSaveMessage.set(null), 5000);
         },
         error: (err) => {
           this.isSavingOcrKey.set(false);
-          this.ocrSaveError.set(err?.error?.detail || err?.message || 'Failed to clear Vision OCR key.');
+          this.ocrSaveError.set(err?.error?.detail || err?.message || 'Vision OCR Key 清除失败。');
         }
       });
     } else {
-      this.ocrSaveMessage.set('✓ Vision OCR API key cleared.');
+      this.ocrSaveMessage.set('✓ Vision OCR API Key 已清除。');
       setTimeout(() => this.ocrSaveMessage.set(null), 3000);
     }
   }
@@ -724,15 +724,15 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.isTestingGeminiKey.set(false);
         if (res?.valid) {
-          this.geminiSaveMessage.set(res?.message || '✓ Gemini API key is valid!');
+          this.geminiSaveMessage.set(res?.message || '✓ Gemini API Key 有效！');
         } else {
-          this.geminiSaveError.set(res?.message || 'Gemini API key verification failed.');
+          this.geminiSaveError.set(res?.message || 'Gemini API Key 校验未通过。');
         }
         setTimeout(() => this.geminiSaveMessage.set(null), 5000);
       },
       error: (err) => {
         this.isTestingGeminiKey.set(false);
-        this.geminiSaveError.set(err?.error?.detail || err?.message || 'Gemini API key test failed.');
+        this.geminiSaveError.set(err?.error?.detail || err?.message || 'Gemini API Key 测试失败。');
       }
     });
   }
@@ -748,15 +748,15 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.isTestingOcrKey.set(false);
         if (res?.valid) {
-          this.ocrSaveMessage.set(res?.message || '✓ Vision OCR API key is valid!');
+          this.ocrSaveMessage.set(res?.message || '✓ Vision OCR API Key 有效！');
         } else {
-          this.ocrSaveError.set(res?.message || 'Vision OCR API key verification failed.');
+          this.ocrSaveError.set(res?.message || 'Vision OCR API Key 校验未通过。');
         }
         setTimeout(() => this.ocrSaveMessage.set(null), 5000);
       },
       error: (err) => {
         this.isTestingOcrKey.set(false);
-        this.ocrSaveError.set(err?.error?.detail || err?.message || 'Vision OCR API key test failed.');
+        this.ocrSaveError.set(err?.error?.detail || err?.message || 'Vision OCR API Key 测试失败。');
       }
     });
   }
@@ -780,11 +780,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   public getProviderHint(tab: string): string {
     switch (tab) {
       case 'gemini':
-        return 'For a quick start, Google Gemini provides a free API key. Artemis also supports other models (OpenAI, Claude, OpenRouter, etc.)—you can configure your own API keys directly in .env or your environment.';
+        return '快速上手可先使用 Google Gemini 的免费 API Key。Artemis 也支持其他模型（OpenAI、Claude、OpenRouter 等）——你可以在 .env 或系统环境变量中配置自己的 API Key。';
       case 'ocr':
-        return 'Google Cloud Vision API key for on-screen OCR text detection and UI grounding.';
+        return 'Google Cloud Vision API Key，用于屏幕文字 OCR 识别与 UI 定位。';
       default:
-        return 'Configure your API key or use environment definitions.';
+        return '请配置你的 API Key，或使用环境变量中的定义。';
     }
   }
 
@@ -794,9 +794,9 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   public getApiKeyPlaceholder(tab: string): string {
     switch (tab) {
-      case 'gemini': return 'Enter Gemini API Key (e.g. AIzaSy...)';
-      case 'ocr': return 'Enter Vision OCR API Key (e.g. AIzaSy...)';
-      default: return 'Enter API Key...';
+      case 'gemini': return '输入 Gemini API Key（例如 AIzaSy...）';
+      case 'ocr': return '输入 Vision OCR API Key（例如 AIzaSy...）';
+      default: return '输入 API Key...';
     }
   }
 
@@ -829,12 +829,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.systemService.restartAdb().subscribe({
       next: (res) => {
         this.adbRestartFeedback.set(
-          res?.restart_result?.skipped ? 'Devices Refreshed ✓' : 'ADB Refreshed ✓'
+          res?.restart_result?.skipped ? '设备已刷新 ✓' : 'ADB 已刷新 ✓'
         );
         setTimeout(() => this.adbRestartFeedback.set(null), 2500);
       },
       error: () => {
-        this.adbRestartFeedback.set('Restart Failed');
+        this.adbRestartFeedback.set('重启失败');
         setTimeout(() => this.adbRestartFeedback.set(null), 3000);
       }
     });
@@ -842,7 +842,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   public connectWifiDevice(): void {
     if (this.isRemoteAdbServer()) {
-      this.wifiConnectError.set('Switch to local ADB before connecting a Wireless ADB device.');
+      this.wifiConnectError.set('连接无线 ADB 设备前，请先切换到本地 ADB。');
       return;
     }
     const host = this.wifiHost().trim();
@@ -850,7 +850,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     const port = parseInt(portStr, 10) || 5555;
 
     if (!host) {
-      this.wifiConnectError.set('Please enter a valid IP address.');
+      this.wifiConnectError.set('请输入有效的 IP 地址。');
       return;
     }
 
@@ -866,12 +866,12 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.wifiConnectMessage.set(`Connected to ${host}:${port}!`);
           setTimeout(() => this.wifiConnectMessage.set(null), 4000);
         } else {
-          this.wifiConnectError.set(cr?.message || 'Connection failed. Please check phone IP & Wi-Fi.');
+          this.wifiConnectError.set(cr?.message || '连接失败。请检查手机 IP 与 Wi-Fi。');
         }
       },
       error: (err) => {
         this.isConnectingWifi.set(false);
-        this.wifiConnectError.set(err?.error?.detail || 'Failed to connect. Please check adb connection.');
+        this.wifiConnectError.set(err?.error?.detail || '连接失败。请检查 adb 连接。');
       }
     });
   }
@@ -881,11 +881,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     const port = Number(this.remoteAdbPort().trim());
 
     if (!host) {
-      this.remoteAdbError.set('Enter the host name or IP address of the ADB server.');
+      this.remoteAdbError.set('请输入 ADB 服务器的主机名或 IP 地址。');
       return;
     }
     if (!Number.isInteger(port) || port < 1 || port > 65535) {
-      this.remoteAdbError.set('Enter a port between 1 and 65535.');
+      this.remoteAdbError.set('请输入 1 到 65535 之间的端口号。');
       return;
     }
 
@@ -910,7 +910,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       error: error => {
         this.isConnectingRemoteAdb.set(false);
         this.remoteAdbError.set(
-          error?.error?.detail || 'Unable to test the ADB server endpoint.'
+          error?.error?.detail || '无法测试该 ADB 服务地址。'
         );
       }
     });
@@ -919,7 +919,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   public activateRemoteAdbServer(): void {
     const tested = this.remoteAdbProbeResult();
     if (!tested?.success) {
-      this.remoteAdbError.set('Test the endpoint before using it.');
+      this.remoteAdbError.set('请先测试该地址后再使用。');
       return;
     }
 
@@ -944,7 +944,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       error: error => {
         this.isActivatingRemoteAdb.set(false);
         this.remoteAdbError.set(
-          error?.error?.detail || 'Unable to use the ADB server endpoint.'
+          error?.error?.detail || '无法使用该 ADB 服务地址。'
         );
       }
     });
@@ -979,7 +979,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       error: error => {
         this.isSwitchingToLocalAdb.set(false);
         this.remoteAdbError.set(
-          error?.error?.detail || 'Unable to switch back to the local ADB server.'
+          error?.error?.detail || '无法切换回本地 ADB 服务。'
         );
       }
     });
@@ -1069,12 +1069,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   public runTask(): void {
     const goal = this.taskGoal().trim();
     if (!goal) {
-      this.errorMessage.set('Please enter a task goal before running.');
+      this.errorMessage.set('请先输入任务目标再运行。');
       return;
     }
 
     if (!this.isReady()) {
-      this.errorMessage.set('System prerequisites are not satisfied. Please review System Setup first.');
+      this.errorMessage.set('系统前置条件未满足，请先检查「系统设置」。');
       this.activeTab.set('diagnostics');
       return;
     }
@@ -1103,7 +1103,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           console.error('Failed to submit task from home page:', err);
           this.isSubmitting.set(false);
           this.errorMessage.set(
-            err?.error?.detail || 'Failed to submit task. Please check server connection.'
+            err?.error?.detail || '任务提交失败，请检查服务端连接。'
           );
         }
       });

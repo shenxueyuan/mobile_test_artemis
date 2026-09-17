@@ -32,10 +32,10 @@ async def test_run_task_rejects_locked_device(monkeypatch):
     locked_probe = ProbeResult(
         id="android_adb",
         category=ProbeCategory.DEVICE,
-        title="Device / Emulator Connected",
+        title="设备 / 模拟器连接",
         status=ProbeStatus.WARN,
         is_blocker=True,
-        summary="Device Locked",
+        summary="设备已锁定",
         description="Unlock the device.",
     )
     run_probe = AsyncMock(return_value=locked_probe)
@@ -47,7 +47,7 @@ async def test_run_task_rejects_locked_device(monkeypatch):
         await tasks.run_task(RunRequest(goal="Open Settings"))
 
     assert exc_info.value.status_code == 409
-    assert "locked" in exc_info.value.detail.lower()
+    assert "已锁定" in exc_info.value.detail
     enqueue_tasks.assert_not_awaited()
 
 
@@ -56,10 +56,10 @@ async def test_run_task_enqueues_when_device_is_unlocked(monkeypatch):
     unlocked_probe = ProbeResult(
         id="android_adb",
         category=ProbeCategory.DEVICE,
-        title="Device / Emulator Connected",
+        title="设备 / 模拟器连接",
         status=ProbeStatus.PASS,
         is_blocker=True,
-        summary="Connected",
+        summary="已连接",
         description="Ready.",
     )
     run_probe = AsyncMock(return_value=unlocked_probe)
@@ -79,10 +79,10 @@ async def test_run_task_binds_probe_verified_device_when_no_serial_requested(mon
     unlocked_probe = ProbeResult(
         id="android_adb",
         category=ProbeCategory.DEVICE,
-        title="Device / Emulator Connected",
+        title="设备 / 模拟器连接",
         status=ProbeStatus.PASS,
         is_blocker=True,
-        summary="Connected",
+        summary="已连接",
         description="Ready.",
         metadata={
             "installed": True,

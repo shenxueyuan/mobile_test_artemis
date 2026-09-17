@@ -239,7 +239,7 @@ class Agent:
 
         # Initialize clients
         publish_startup_progress(
-            "device_check", "Checking the Android device", session_id=self._session_id
+            "device_check", "正在检查 Android 设备", session_id=self._session_id
         )
         if os.environ.get("ARTEMIS_CLOUD_MODE") != "1":
             self._init_clients(
@@ -262,7 +262,7 @@ class Agent:
         )
         logger.info(self._device_context.to_str())
         publish_startup_progress(
-            "device_ready", "Android device connected", session_id=self._session_id
+            "device_ready", "Android 设备已连接", session_id=self._session_id
         )
 
         # Asynchronously pre-warm LLM connection pools in the background
@@ -278,11 +278,11 @@ class Agent:
         if os.environ.get("ARTEMIS_FAKE_LLM") == "1":
             logger.info("ARTEMIS_FAKE_LLM=1 — skipping real LLM connection pre-warming.")
             publish_startup_progress(
-                "model_ready", "Model connection is ready (fake LLM)", session_id=self._session_id
+                "model_ready", "模型连接已就绪（模拟 LLM）", session_id=self._session_id
             )
             return
         publish_startup_progress(
-            "model_warmup", "Warming the model connection", session_id=self._session_id
+            "model_warmup", "正在预热模型连接", session_id=self._session_id
         )
         logger.info("Starting background pre-warming of Gemini API connection pools...")
         try:
@@ -294,9 +294,8 @@ class Agent:
                 logger.warning("Skipping LLM pre-warming: No API key available.")
                 publish_startup_progress(
                     "model_ready",
-                    "Model connection will initialize on first use",
-                    session_id=self._session_id,
-                )
+                    "模型连接将在首次使用时初始化",
+                    session_id=self._session_id,                )
                 return
 
             # 1. Pre-warm Native SDK client
@@ -313,13 +312,13 @@ class Agent:
             )
             logger.success("Gemini API connection pools successfully pre-warmed.")
             publish_startup_progress(
-                "model_ready", "Model connection is ready", session_id=self._session_id
+                "model_ready", "模型连接已就绪", session_id=self._session_id
             )
         except Exception as e:
             logger.warning(f"Failed to pre-warm LLM connections: {e}")
             publish_startup_progress(
                 "model_ready",
-                "Model connection will initialize on first use",
+                "模型连接将在首次使用时初始化",
                 session_id=self._session_id,
             )
 
@@ -647,7 +646,7 @@ class Agent:
                         await self._connect_screen_client(context, str(sess_id))
                     await self._ensure_device_unlocked()
                 publish_startup_progress(
-                    "environment", "Preparing the device environment", session_id=str(sess_id)
+                    "environment", "正在准备设备环境", session_id=str(sess_id)
                 )
                 await self._prepare_app_installation(task=task)
                 await self._prepare_device_environment(context=context)
@@ -679,7 +678,7 @@ class Agent:
                             logger.error(f"[{task_name}] Failed to start screen recording: {e}")
 
                     publish_startup_progress(
-                        "environment_ready", "Device environment is ready", session_id=str(sess_id)
+                        "environment_ready", "设备环境已就绪", session_id=str(sess_id)
                     )
                     try:
                         if request.profile and request.profile.lower() == "flash":
@@ -1296,7 +1295,7 @@ class Agent:
             previous_client.remove_backend_listener(listener)
             self._hierarchy_backend_listener = None
         publish_startup_progress(
-            "uiautomator", "Connecting to the UI hierarchy service", session_id=session_id
+            "uiautomator", "正在连接 UI 层级服务", session_id=session_id
         )
 
         def on_provision(event: str, details: dict) -> None:
@@ -1304,15 +1303,15 @@ class Agent:
             if event == "installing":
                 publish_startup_progress(
                     "helper_install",
-                    "Installing the Artemis accessibility helper on this device for the "
-                    f"first time (v{version}, about 3 seconds)",
+                    "正在为该设备首次安装 Artemis 无障碍助手 "
+                    f"(v{version}，约 3 秒)",
                     session_id=session_id,
                     **details,
                 )
             elif event == "upgrading":
                 publish_startup_progress(
                     "helper_upgrade",
-                    "Upgrading the Artemis accessibility helper "
+                    "正在升级 Artemis 无障碍助手 "
                     f"(v{details.get('from_version')} -> v{details.get('to_version')})",
                     session_id=session_id,
                     **details,
@@ -1331,7 +1330,7 @@ class Agent:
         backend = describe_backend(client) or "uiautomator"
         publish_startup_progress(
             "uiautomator_ready",
-            f"UI hierarchy service is ready ({backend})",
+            f"UI 层级服务已就绪（{backend}）",
             session_id=session_id,
         )
         self._announce_hierarchy_backend(context, session_id, None, backend, None)

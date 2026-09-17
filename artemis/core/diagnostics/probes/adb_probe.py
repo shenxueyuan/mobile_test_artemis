@@ -130,7 +130,7 @@ class AdbDeviceProbe(BaseProbe):
                 return first_line
         except Exception as e:
             logger.debug(f"Failed to read adb version: {e}")
-        return "Installed"
+        return "已安装"
 
     @staticmethod
     def _parse_device_lock_state(policy_output: str, trust_output: str) -> bool | None:
@@ -364,11 +364,11 @@ class AdbDeviceProbe(BaseProbe):
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Device / Emulator Connected",
+                title="设备 / 模拟器连接",
                 status=ProbeStatus.FAIL,
                 is_blocker=self.is_blocker,
-                summary="ADB Not Found",
-                description="Android Debug Bridge (adb) is not installed or not in PATH.",
+                summary="未找到 ADB",
+                description="Android 调试桥（adb）未安装，或不在 PATH 中。",
                 metadata={"installed": False, "submission_probe": True},
             )
 
@@ -377,12 +377,12 @@ class AdbDeviceProbe(BaseProbe):
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Device / Emulator Connected",
+                title="设备 / 模拟器连接",
                 status=ProbeStatus.WARN,
                 is_blocker=self.is_blocker,
-                summary="Lock State Unknown",
+                summary="锁屏状态未知",
                 description=(
-                    "ADB did not respond quickly enough to verify the Android lock-screen state."
+                    "ADB 未能在超时时间内响应，无法确认 Android 锁屏状态。"
                 ),
                 metadata={"installed": True, "submission_probe": True},
             )
@@ -390,15 +390,15 @@ class AdbDeviceProbe(BaseProbe):
         ready_serials = [serial for serial, state in device_states if state == "device"]
         if not ready_serials:
             states = {state for _, state in device_states}
-            summary = "Device Unauthorized" if "unauthorized" in states else "No Device Found"
+            summary = "设备未授权" if "unauthorized" in states else "未检测到设备"
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Device / Emulator Connected",
+                title="设备 / 模拟器连接",
                 status=ProbeStatus.WARN,
                 is_blocker=self.is_blocker,
                 summary=summary,
-                description="No authorized Android device is currently ready.",
+                description="当前没有已授权且就绪的 Android 设备。",
                 metadata={
                     "installed": True,
                     "submission_probe": True,
@@ -445,24 +445,24 @@ class AdbDeviceProbe(BaseProbe):
                     serial = candidate
                     is_locked = None
         summary = (
-            "Device Locked"
+            "设备已锁定"
             if is_locked is True
-            else "Connected"
+            else "已连接"
             if is_locked is False
-            else "Lock State Unknown"
+            else "锁屏状态未知"
         )
         status = ProbeStatus.PASS if is_locked is False else ProbeStatus.WARN
         description = (
-            f"ADB connected to {serial}. Ready for task submission."
+            f"ADB 已连接到 {serial}，可以提交任务了。"
             if is_locked is False
-            else f"Android device {serial} is locked. Unlock it before running a task."
+            else f"Android 设备 {serial} 已锁定。请先解锁再运行任务。"
             if is_locked is True
-            else f"Android lock-screen state could not be verified for {serial}."
+            else f"无法确认 {serial} 的 Android 锁屏状态。"
         )
         return ProbeResult(
             id=self.probe_id,
             category=self.category,
-            title="Device / Emulator Connected",
+            title="设备 / 模拟器连接",
             status=status,
             is_blocker=self.is_blocker,
             summary=summary,
@@ -515,7 +515,7 @@ class AdbDeviceProbe(BaseProbe):
                     serial.startswith("emulator-") or "127.0.0.1" in serial or "localhost" in serial
                 )
                 if is_emulator and not model:
-                    model = "Android Emulator"
+                    model = "Android 模拟器"
 
                 device_info = DeviceInfo(
                     serial=serial,
@@ -597,14 +597,14 @@ class AdbDeviceProbe(BaseProbe):
                 actions.append(
                     ProbeAction(
                         action_type="command",
-                        label="Install via WinGet",
+                        label="通过 WinGet 安装",
                         payload="winget install Google.PlatformTools",
                     )
                 )
                 actions.append(
                     ProbeAction(
                         action_type="command",
-                        label="Run PowerShell Setup",
+                        label="运行 PowerShell 安装脚本",
                         payload="powershell -ExecutionPolicy Bypass -File scripts/install_deps.ps1",
                     )
                 )
@@ -612,7 +612,7 @@ class AdbDeviceProbe(BaseProbe):
                 actions.append(
                     ProbeAction(
                         action_type="command",
-                        label="Install via Homebrew",
+                        label="通过 Homebrew 安装",
                         payload="brew install android-platform-tools",
                     )
                 )
@@ -620,14 +620,14 @@ class AdbDeviceProbe(BaseProbe):
                 actions.append(
                     ProbeAction(
                         action_type="command",
-                        label="Linux Quick Install",
+                        label="Linux 快速安装",
                         payload="sudo apt-get install -y adb",
                     )
                 )
                 actions.append(
                     ProbeAction(
                         action_type="command",
-                        label="One-Click Install All",
+                        label="一键安装全部",
                         payload="bash scripts/install_deps.sh",
                     )
                 )
@@ -635,7 +635,7 @@ class AdbDeviceProbe(BaseProbe):
             actions.append(
                 ProbeAction(
                     action_type="link",
-                    label="Download Android Platform Tools",
+                    label="下载 Android 平台工具",
                     payload="https://developer.android.com/tools/releases/platform-tools",
                 )
             )
@@ -643,11 +643,11 @@ class AdbDeviceProbe(BaseProbe):
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Device / Emulator Connected",
+                title="设备 / 模拟器连接",
                 status=ProbeStatus.FAIL,
                 is_blocker=self.is_blocker,
-                summary="ADB Not Found",
-                description="Android Debug Bridge (adb) is not installed or not in PATH.",
+                summary="未找到 ADB",
+                description="Android 调试桥（adb）未安装，或不在 PATH 中。",
                 metadata={"installed": False},
                 actions=actions,
             )
@@ -684,7 +684,7 @@ class AdbDeviceProbe(BaseProbe):
                 actions.append(
                     ProbeAction(
                         action_type="command",
-                        label="Auto-Heal ADB Keys",
+                        label="自动修复 ADB 密钥",
                         payload="artemis doctor --fix",
                     )
                 )
@@ -695,7 +695,7 @@ class AdbDeviceProbe(BaseProbe):
                     actions.append(
                         ProbeAction(
                             action_type="command",
-                            label=f"Launch {avd}",
+                            label=f"启动 {avd}",
                             payload=f"{emu_display_cmd} -avd {avd}",
                         )
                     )
@@ -703,7 +703,7 @@ class AdbDeviceProbe(BaseProbe):
                 actions.append(
                     ProbeAction(
                         action_type="command",
-                        label="Start Default Emulator",
+                        label="启动默认模拟器",
                         payload=f"{emu_display_cmd} -avd Pixel_8_API_34",
                     )
                 )
@@ -711,24 +711,24 @@ class AdbDeviceProbe(BaseProbe):
             actions.append(
                 ProbeAction(
                     action_type="hint",
-                    label="Connect via USB",
-                    payload="Connect your Android phone via USB cable and enable Developer Options -> USB Debugging.",
+                    label="通过 USB 连接",
+                    payload="用 USB 数据线连接 Android 手机，并开启「开发者选项 -> USB 调试」。",
                 )
             )
 
-            desc = "ADB is ready, but no active Android device or emulator was detected."
+            desc = "ADB 已就绪，但未检测到在用的 Android 设备或模拟器。"
             if key_status.is_corrupted:
-                desc += f" Warning: Corrupted ADB RSA key detected ({key_status.error_reason})."
+                desc += f" 警告：检测到损坏的 ADB RSA 密钥（{key_status.error_reason}）。"
             if installed_avds:
-                desc += f" Found {len(installed_avds)} installed emulator(s): {', '.join(installed_avds)}."
+                desc += f" 发现 {len(installed_avds)} 个已安装的模拟器：{', '.join(installed_avds)}。"
 
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Device / Emulator Connected",
+                title="设备 / 模拟器连接",
                 status=ProbeStatus.WARN,
                 is_blocker=self.is_blocker,
-                summary="No Device Found",
+                summary="未检测到设备",
                 description=desc,
                 metadata=metadata,
                 actions=actions,
@@ -745,24 +745,24 @@ class AdbDeviceProbe(BaseProbe):
                     return ProbeResult(
                         id=self.probe_id,
                         category=self.category,
-                        title="Device / Emulator Connected",
+                        title="设备 / 模拟器连接",
                         status=ProbeStatus.WARN,
                         is_blocker=self.is_blocker,
-                        summary="ADB Key Corrupted",
+                        summary="ADB 密钥损坏",
                         description=(
-                            f"Device detected ({unauth_serial}), but ADB authentication keys are corrupted "
-                            f"({key_status.error_reason}). This prevents the device from displaying the USB Debugging prompt."
+                            f"检测到设备（{unauth_serial}），但 ADB 认证密钥已损坏 "
+                            f"（{key_status.error_reason}）。这会导致设备无法弹出 USB 调试授权提示。"
                         ),
                         metadata=metadata,
                         actions=[
                             ProbeAction(
                                 action_type="command",
-                                label="Auto-Heal ADB Keys",
+                                label="自动修复 ADB 密钥",
                                 payload="artemis doctor --fix",
                             ),
                             ProbeAction(
                                 action_type="command",
-                                label="Restart ADB Server",
+                                label="重启 ADB 服务",
                                 payload=f"{adb_path} kill-server && {adb_path} start-server",
                             ),
                         ],
@@ -771,21 +771,21 @@ class AdbDeviceProbe(BaseProbe):
                 return ProbeResult(
                     id=self.probe_id,
                     category=self.category,
-                    title="Device / Emulator Connected",
+                    title="设备 / 模拟器连接",
                     status=ProbeStatus.WARN,
                     is_blocker=self.is_blocker,
-                    summary="Device Unauthorized",
-                    description=f"Device detected ({unauth_serial}), but USB debugging is not yet authorized.",
+                    summary="设备未授权",
+                    description=f"检测到设备（{unauth_serial}），但尚未授权 USB 调试。",
                     metadata=metadata,
                     actions=[
                         ProbeAction(
                             action_type="hint",
-                            label="Authorize USB Debugging",
-                            payload="Please unlock your Android phone and tap 'Allow' on the USB Debugging permission prompt.",
+                            label="授权 USB 调试",
+                            payload="请解锁 Android 手机，并在 USB 调试授权弹窗中点击「允许」。",
                         ),
                         ProbeAction(
                             action_type="command",
-                            label="Restart ADB Server",
+                            label="重启 ADB 服务",
                             payload=f"{adb_path} kill-server && {adb_path} start-server",
                         ),
                     ],
@@ -796,17 +796,17 @@ class AdbDeviceProbe(BaseProbe):
                 return ProbeResult(
                     id=self.probe_id,
                     category=self.category,
-                    title="Device / Emulator Connected",
+                    title="设备 / 模拟器连接",
                     status=ProbeStatus.WARN,
                     is_blocker=self.is_blocker,
-                    summary="Device Booting",
-                    description=f"Device detected ({first_serial}, state: {first_state}). It is currently booting up or offline. Please wait a few seconds...",
+                    summary="设备启动中",
+                    description=f"检测到设备（{first_serial}，状态：{first_state}）。设备正在启动或处于离线状态，请稍等几秒...",
                     metadata=metadata,
                     actions=[
                         ProbeAction(
                             action_type="hint",
-                            label="Device Booting",
-                            payload=f"Device {first_serial} is initializing. It will be ready automatically in a few seconds.",
+                            label="设备启动中",
+                            payload=f"设备 {first_serial} 正在初始化，几秒后会自动就绪。",
                         )
                     ],
                 )
@@ -839,18 +839,18 @@ class AdbDeviceProbe(BaseProbe):
 
         if active_dev.is_locked is not False:
             is_locked = active_dev.is_locked is True
-            summary = "Device Locked" if is_locked else "Lock State Unknown"
+            summary = "设备已锁定" if is_locked else "锁屏状态未知"
             description = (
-                f"ADB connected to {display_name}, but the Android lock screen is active. "
-                "Unlock the device and enter the home screen before running a task."
+                f"ADB 已连接到 {display_name}，但 Android 锁屏处于激活状态。"
+                "请先解锁设备并进入主屏幕，再运行任务。"
                 if is_locked
-                else f"ADB connected to {display_name}, but Android lock-screen state could not "
-                "be verified. Keep the device unlocked on the home screen and check again."
+                else f"ADB 已连接到 {display_name}，但无法确认 Android 锁屏状态。"
+                "请保持设备解锁并停留在主屏幕，然后重新检查。"
             )
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Device / Emulator Connected",
+                title="设备 / 模拟器连接",
                 status=ProbeStatus.WARN,
                 is_blocker=self.is_blocker,
                 summary=summary,
@@ -859,10 +859,10 @@ class AdbDeviceProbe(BaseProbe):
                 actions=[
                     ProbeAction(
                         action_type="hint",
-                        label="Unlock Device" if is_locked else "Verify Device Screen",
+                        label="解锁设备" if is_locked else "确认设备屏幕状态",
                         payload=(
-                            "Unlock the Android device and leave it on the home screen. "
-                            "Readiness is checked automatically every few seconds."
+                            "请解锁 Android 设备并停留在主屏幕。"
+                            "系统每隔几秒会自动重新检查就绪状态。"
                         ),
                     )
                 ],
@@ -871,17 +871,17 @@ class AdbDeviceProbe(BaseProbe):
         return ProbeResult(
             id=self.probe_id,
             category=self.category,
-            title="Device / Emulator Connected",
+            title="设备 / 模拟器连接",
             status=ProbeStatus.PASS,
             is_blocker=self.is_blocker,
-            summary="Connected",
-            description=f"ADB connected to {display_name}. Ready for perception and touch automation.",
+            summary="已连接",
+            description=f"ADB 已连接到 {display_name}，可以进行视觉感知与触控自动化。",
             metadata=metadata,
             actions=[
                 ProbeAction(
                     action_type="hint",
-                    label="Device Ready",
-                    payload=f"Serial: {active_dev.serial} | Android OS: {active_dev.android_version or 'Unknown'}",
+                    label="设备就绪",
+                    payload=f"序列号：{active_dev.serial} | Android 系统：{active_dev.android_version or '未知'}",
                 )
             ],
         )

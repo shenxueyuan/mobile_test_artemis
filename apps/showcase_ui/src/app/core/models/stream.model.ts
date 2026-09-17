@@ -57,7 +57,7 @@ export interface LLMStreamEventData {
 }
 
 export const DEFAULT_STREAM_RESET_MESSAGE =
-  'A request error occurred during output generation, typically caused by lower API priority. Retrying automatically...';
+  '输出生成过程中发生请求错误，通常由 API 优先级较低导致。正在自动重试...';
 
 export interface StreamResetNotice {
   id: string;

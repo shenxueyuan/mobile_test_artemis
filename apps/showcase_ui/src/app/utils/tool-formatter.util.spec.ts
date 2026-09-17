@@ -31,11 +31,11 @@ describe('compress_history timeline line', () => {
 
   it('says which steps are being condensed while running', () => {
     expect(getCompressionLabel(trace('running', { start_step: 12, end_step: 27 })))
-      .toBe('Condensing steps 12–27 into a short memory to free up room…');
+      .toBe('正在把 步骤 12–27 压缩为简要记忆以释放空间…');
     expect(getCompressionLabel(trace('running', { start_step: 12, end_step: 27, note: 'retrying' })))
-      .toBe('Retrying the memory summary for steps 12–27…');
+      .toBe('正在重试 步骤 12–27 的记忆摘要…');
     expect(getCompressionLabel(trace('running', { start_step: 5, end_step: 5 })))
-      .toBe('Condensing step 5 into a short memory to free up room…');
+      .toBe('正在把 步骤 5 压缩为简要记忆以释放空间…');
   });
 
   it('says the summary is ready but held while working memory is still small', () => {
@@ -48,10 +48,10 @@ describe('compress_history timeline line', () => {
       swap_at_tokens: 28000
     });
     expect(getCompressionLabel(held)).toBe(
-      'Short memory for steps 1–4 is ready; keeping the full record until working memory fills up · ≈ 20k of 28k tokens'
+      '步骤 1–4 的简要记忆已就绪；在工作记忆占满前保留完整记录 · ≈ 工作记忆 20k / 28k tokens'
     );
     expect(getCompressionLabel(trace('running', { start_step: 1, end_step: 4, note: 'held' })))
-      .toBe('Short memory for steps 1–4 is ready; keeping the full record until working memory fills up');
+      .toBe('步骤 1–4 的简要记忆已就绪；在工作记忆占满前保留完整记录');
   });
 
   it('reports the size reduction and the working memory once done', () => {
@@ -64,30 +64,30 @@ describe('compress_history timeline line', () => {
       context_budget: 80000
     });
     expect(getCompressionLabel(done)).toBe(
-      'Steps 12–27 condensed into a short memory · 8.4k → 600 tokens (14× smaller) · working memory ≈ 54k of 80k tokens'
+      '步骤 12–27 已压缩为简要记忆 · 8.4k → 600 tokens（缩小 14 倍） · 工作记忆 ≈ 54k / 80k tokens'
     );
   });
 
   it('omits the working memory figure on lines that do not carry it', () => {
     const done = trace('success', { start_step: 1, end_step: 4, source_tokens: 3000, summary_tokens: 1500 });
-    expect(getCompressionLabel(done)).toBe('Steps 1–4 condensed into a short memory · 3k → 1.5k tokens (2× smaller)');
+    expect(getCompressionLabel(done)).toBe('步骤 1–4 已压缩为简要记忆 · 3k → 1.5k tokens（缩小 2 倍）');
   });
 
   it('explains a forced recap and a failed attempt in plain words', () => {
     const forced = trace('success', { start_step: 1, end_step: 4, forced: true, context_tokens: 70000, context_budget: 80000 });
     expect(getCompressionLabel(forced))
-      .toBe('Steps 1–4 condensed into a recap to free up memory · working memory ≈ 70k of 80k tokens');
+      .toBe('步骤 1–4 已压缩为摘要以释放记忆 · 工作记忆 ≈ 70k / 80k tokens');
     expect(getCompressionLabel(trace('failed', { start_step: 1, end_step: 4 })))
-      .toBe("Couldn't condense steps 1–4 yet; keeping the full record and retrying later");
+      .toBe('暂时无法压缩 步骤 1–4；保留完整记录，稍后重试');
   });
 
   describe('phase (args.phase from the backend)', () => {
     it('reads the declared phase and maps it to one short plain-language label', () => {
       const cases: Array<[string, string, string]> = [
-        ['running', 'summarizing', 'Summarizing this stretch'],
-        ['running', 'ready', 'Summary ready; kept in reserve until the context fills up'],
-        ['success', 'applied', 'Replaced this stretch with its summary'],
-        ['failed', 'failed', 'Summary failed; full record kept']
+        ['running', 'summarizing', '正在总结这一段记录'],
+        ['running', 'ready', '摘要已生成；在上下文占满前暂不启用'],
+        ['success', 'applied', '已用摘要替换这一段记录'],
+        ['failed', 'failed', '摘要生成失败；保留完整记录']
       ];
       for (const [status, phase, label] of cases) {
         const tool = trace(status, { start_step: 1, end_step: 4, phase });
@@ -107,9 +107,9 @@ describe('compress_history timeline line', () => {
 
     it('drives the timeline line from the phase even without a note', () => {
       expect(getCompressionLabel(trace('running', { start_step: 1, end_step: 4, phase: 'ready' })))
-        .toBe('Short memory for steps 1–4 is ready; keeping the full record until working memory fills up');
+        .toBe('步骤 1–4 的简要记忆已就绪；在工作记忆占满前保留完整记录');
       expect(getCompressionLabel(trace('running', { start_step: 1, end_step: 4, phase: 'summarizing' })))
-        .toBe('Condensing steps 1–4 into a short memory to free up room…');
+        .toBe('正在把 步骤 1–4 压缩为简要记忆以释放空间…');
     });
 
     it('treats a ready-but-held summary as waiting, not running', () => {
@@ -129,7 +129,7 @@ describe('cleanErrorMessage', () => {
   });
 
   it('does not present an empty LLM wrapper label as an error reason', () => {
-    expect(cleanErrorMessage('LLM Error:')).toBe('Unknown error');
+    expect(cleanErrorMessage('LLM Error:')).toBe('未知错误');
   });
 });
 
@@ -222,7 +222,7 @@ describe('video analysis timeline formatting', () => {
 
     expect(view?.outcome).toBe('complete');
     expect(view?.reuse).toBe('full');
-    expect(view?.title).toBe('Reused video analysis');
+    expect(view?.title).toBe('复用已有的视频分析');
     expect(view?.requestedRange).toEqual({ start: 0, end: 42 });
   });
 
@@ -259,7 +259,7 @@ describe('video analysis timeline formatting', () => {
     expect(result[0].trace_id).toBe('video-analysis-video-agent-1');
     expect(result[0].payload.result.outcome).toBe('partial');
     expect(result[0].payload.result.requested_range).toEqual({ start: 0, end: 60 });
-    expect(getVideoAnalysisView(result[0])?.title).toBe('Video analysis partially completed');
+    expect(getVideoAnalysisView(result[0])?.title).toBe('视频分析部分完成');
   });
 
   it('keeps video analyses from independent parent executions separate', () => {

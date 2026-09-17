@@ -64,16 +64,16 @@ class PythonRuntimeProbe(BaseProbe):
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Python Runtime Environment",
+                title="Python 运行时环境",
                 status=ProbeStatus.PASS,
                 is_blocker=self.is_blocker,
-                summary=f"Python {py_ver_str} Ready",
-                description=f"Python {py_ver_str} ({arch}, 64-bit) detected at {executable}. Satisfies requirement (>= 3.12).",
+                summary=f"Python {py_ver_str} 就绪",
+                description=f"在 {executable} 检测到 Python {py_ver_str}（{arch}，64 位），满足要求（>= 3.12）。",
                 metadata=metadata,
                 actions=[
                     ProbeAction(
                         action_type="hint",
-                        label="Python Runtime OK",
+                        label="Python 运行时正常",
                         payload=f"Python {py_ver_str} ({arch})",
                     )
                 ],
@@ -82,21 +82,21 @@ class PythonRuntimeProbe(BaseProbe):
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Python Runtime Environment",
+                title="Python 运行时环境",
                 status=ProbeStatus.FAIL,
                 is_blocker=self.is_blocker,
-                summary=f"Python {py_ver_str} Unsupported",
-                description=f"Python {py_ver_str} detected. Artemis requires Python >= 3.12.",
+                summary=f"Python {py_ver_str} 不受支持",
+                description=f"检测到 Python {py_ver_str}。Artemis 需要 Python >= 3.12。",
                 metadata=metadata,
                 actions=[
                     ProbeAction(
                         action_type="link",
-                        label="Download Python 3.12+",
+                        label="下载 Python 3.12+",
                         payload="https://www.python.org/downloads/",
                     ),
                     ProbeAction(
                         action_type="command",
-                        label="Install with uv",
+                        label="使用 uv 安装",
                         payload="uv python install 3.12",
                     ),
                 ],
@@ -130,17 +130,17 @@ class SystemConfigProbe(BaseProbe):
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Artemis System Configuration",
+                title="Artemis 系统配置",
                 status=ProbeStatus.PASS,
                 is_blocker=self.is_blocker,
-                summary="Config Valid",
-                description=f"System configuration loaded and validated (Planner model: {planner_model}).",
+                summary="配置有效",
+                description=f"系统配置已加载并通过校验（Planner 模型：{planner_model}）。",
                 metadata=metadata,
                 actions=[
                     ProbeAction(
                         action_type="hint",
-                        label="Config Healthy",
-                        payload="config/artemis.jsonc is loaded and valid.",
+                        label="配置正常",
+                        payload="config/artemis.jsonc 已加载且有效。",
                     )
                 ],
             )
@@ -153,16 +153,16 @@ class SystemConfigProbe(BaseProbe):
             return ProbeResult(
                 id=self.probe_id,
                 category=self.category,
-                title="Artemis System Configuration",
+                title="Artemis 系统配置",
                 status=ProbeStatus.FAIL,
                 is_blocker=self.is_blocker,
-                summary="Config Error",
-                description=f"Failed to parse config/artemis.jsonc: {e}",
+                summary="配置错误",
+                description=f"解析 config/artemis.jsonc 失败：{e}",
                 metadata=metadata,
                 actions=[
                     ProbeAction(
                         action_type="command",
-                        label="Run Artemis Init",
+                        label="运行 artemis init",
                         payload="artemis init",
                     )
                 ],
