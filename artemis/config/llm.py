@@ -116,9 +116,23 @@ class LLMWithFallback(LLM):
         return f"{self.provider}/{self.model} (fallback: {self.fallback})"
 
 
-def lightweight_judge_default() -> "LLMWithFallback":
+def lightweight_judge_default(config: "LLMConfig | None" = None) -> "LLMWithFallback":
     """Factory default for the lightweight judge nodes (pixel safety net and
-    planner validation): a flash-lite model at temperature 0."""
+    planner validation): a flash-lite model at temperature 0.
+
+    Non-Google deployments have no Gemini flash-lite equivalent, so the
+    configured lightweight node (Hopper) is reused at temperature 0 instead.
+    """
+    if config is not None:
+        hopper = config.utils.hopper
+        provider = str(getattr(hopper, "provider", "") or "").strip().lower()
+        if provider and provider not in ("google", "gemini"):
+            return LLMWithFallback(
+                provider=hopper.provider,
+                model=hopper.model,
+                temperature=0.0,
+                fallback=hopper.fallback,
+            )
     return LLMWithFallback(
         provider="google",
         model="gemini-3.5-flash-lite",
@@ -212,7 +226,7 @@ class LLMConfig(BaseModel):
                 # Both are cheap, high-frequency judges: the pixel safety net
                 # runs before actions, the planner validator after every
                 # milestone edit. They share one lightweight default.
-                return lightweight_judge_default()
+                return lightweight_judge_default(self)
             elif item == "output_analyzer":
                 return self.log_analyzer
         return val

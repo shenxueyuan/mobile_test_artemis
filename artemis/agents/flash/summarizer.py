@@ -36,7 +36,7 @@ from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 
 from artemis.context import ArtemisContext
 from artemis.memory.step_memory import JobKey, StepMemoryService
-from artemis.services.llm import RobustChatModelWrapper, get_google_llm, get_llm
+from artemis.services.llm import RobustChatModelWrapper, get_google_llm, get_llm, uses_google_provider
 from artemis.services.token_meter import record_llm_usage
 from artemis.utils.logger import get_logger
 from artemis.utils.task_tree import format_actions_clean
@@ -165,11 +165,16 @@ class VisualStepSummarizer(StepMemoryService):
         target_model = model_name or "gemini-2.5-flash-lite"
         self._model_name = target_model
         try:
-            if model_name:
+            if model_name and uses_google_provider(ctx, "summarizer"):
                 self._llm = get_google_llm(model_name=target_model, temperature=0.0)
             else:
-                self._llm = get_llm(ctx, name="summarizer", is_utils=True)
+                self._llm = get_llm(ctx, name="summarizer")
         except Exception:
+            # Only a Google deployment has a raw Gemini model to fall back to.
+            # Re-raising elsewhere keeps the real failure visible instead of
+            # masking it with a confusing "missing API key" error.
+            if not uses_google_provider(ctx, "summarizer"):
+                raise
             self._llm = get_google_llm(model_name=target_model, temperature=0.0)
         try:
             configured = getattr(self._llm, "model", None) or getattr(self._llm, "model_name", None)

@@ -907,6 +907,21 @@ async def invoke_llm_with_timeout_message[T](
 
 
 # Backward compatible factory functions delegating to ModelFactory
+def uses_google_provider(ctx: Any, node: str) -> bool:
+    """Whether the configured provider for ``node`` is Google (Gemini / Vertex AI).
+
+    Auxiliary lenses that ride the raw Google model path must not do so on
+    OpenAI-compatible deployments: ``ChatGoogleGenerativeAI`` refuses to build
+    without a GOOGLE_API_KEY, which would break the whole run. An unknown
+    configuration reports True, so the legacy path is kept whenever the
+    provider cannot be read.
+    """
+    llm_config = getattr(ctx, "llm_config", None)
+    cfg = getattr(llm_config, node, None) if llm_config is not None else None
+    provider = str(getattr(cfg, "provider", "") or "").strip().lower()
+    return not provider or provider in ("google", "gemini")
+
+
 def get_google_llm(
     model_name: str = "gemini-3.8-flash",
     temperature: float | None = None,
