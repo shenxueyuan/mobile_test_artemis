@@ -1082,7 +1082,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.taskDraft.set(this.emptyTaskDraft());
   }
 
-  public startEditTask(task: SmartSuggestion): void {
+  public selectTask(task: SmartSuggestion): void {
     this.taskFormError.set(null);
     this.taskDraft.set({
       id: task.id,

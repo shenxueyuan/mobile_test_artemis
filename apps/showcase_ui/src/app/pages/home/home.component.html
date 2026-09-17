@@ -2152,7 +2152,14 @@
             <div class="tm-empty">还没有推荐任务，点击「新增」创建第一个。</div>
           }
           @for (task of taskRecService.tasks(); track task.id) {
-            <div class="tm-row" [class.is-editing]="taskDraft()?.id === task.id">
+            <div
+              class="tm-row"
+              [class.is-selected]="taskDraft()?.id === task.id"
+              (click)="selectTask(task)"
+              (keydown.enter)="selectTask(task)"
+              role="button"
+              tabindex="0"
+            >
               <div class="tm-row-main">
                 <div class="tm-row-title">
                   <span class="tm-row-name">{{ task.title }}</span>
@@ -2173,7 +2180,6 @@
                 </div>
               </div>
               <div class="tm-row-actions">
-                <button type="button" class="tm-btn tm-btn-small" (click)="startEditTask(task)">编辑</button>
                 <button type="button" class="tm-btn tm-btn-small tm-btn-danger" (click)="deleteTask(task, $event)">删除</button>
               </div>
             </div>
@@ -2264,6 +2270,12 @@
                 {{ taskRecService.isSaving() ? '保存中...' : '保存' }}
               </button>
             </div>
+          </div>
+        } @else {
+          <div class="tm-detail-hint">
+            <span class="material-symbols-outlined">touch_app</span>
+            <p>点击左侧任务查看详情</p>
+            <p class="tm-detail-hint-sub">选中后即可直接修改并保存，或用上方「新增」创建任务</p>
           </div>
         }
       </div>
