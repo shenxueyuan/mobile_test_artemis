@@ -37,10 +37,20 @@ def get_bundled_config_path(filename: str) -> Path | None:
     return candidate if candidate.is_file() else None
 
 
+def get_bundled_data_path(filename: str) -> Path | None:
+    """Return a bundled data file (stroke database and similar) when it exists."""
+    candidate = _resource_path("data", filename)
+    return candidate if candidate.is_file() else None
+
+
 def get_bundled_showcase_dist() -> Path | None:
     """Return the bundled Angular browser build when it is complete."""
     candidate = _resource_path("showcase_ui")
     return candidate if (candidate / "index.html").is_file() else None
 
 
-__all__ = ["get_bundled_config_path", "get_bundled_showcase_dist"]
+__all__ = [
+    "get_bundled_config_path",
+    "get_bundled_data_path",
+    "get_bundled_showcase_dist",
+]

@@ -84,6 +84,7 @@ _TURN_ENDING_ORDER = (
     "click",
     "swipe",
     "input_text",
+    "handwrite",
     "long_press",
     "press_key",
     "manage_app",

@@ -82,6 +82,15 @@ class Actuator(Protocol):
         duration_ms: int = 800,
     ) -> ActionResult: ...
 
+    async def handwrite(
+        self,
+        text: str,
+        bounds: tuple[int, int, int, int] | None = None,
+        source: str = "auto",
+        point_interval_ms: int = 0,
+        stroke_gap_ms: int = 120,
+    ) -> ActionResult: ...
+
     async def press_key(self, key: str) -> ActionResult: ...
 
     async def manage_app(self, action: str, app_name: str) -> ActionResult: ...

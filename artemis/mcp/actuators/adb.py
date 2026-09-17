@@ -26,15 +26,26 @@ executor's ``try/except`` did.
 """
 
 import asyncio
+import base64
 import inspect
+import io
 import re
 import time
 from typing import Any
 
+from PIL import Image
+
 from artemis.context import ArtemisContext
+from artemis.controllers.platform_specific_commands_controller import get_adb_device
 from artemis.controllers.unified_controller import UnifiedMobileController
 from artemis.mcp.action_manifest import DEVICE_ACTIONS, ExtensionTool
 from artemis.mcp.action_types import ActionCode, ActionResult
+from artemis.mcp.handwriting import (
+    DEFAULT_STROKE_GAP_MS,
+    HandwritingError,
+    build_motion_scripts,
+    render_text,
+)
 from artemis.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -249,6 +260,152 @@ class AdbActuator:
             f"Swiped from [{nx1}, {ny1}] to [{nx2}, {ny2}] (normalized).",
             normalized_coordinates=[int(nx1), int(ny1), int(nx2), int(ny2)],
             duration_ms=duration_ms,
+        )
+
+    #: Side of the default canvas box, as a fraction of the smaller screen edge.
+    _DEFAULT_CANVAS_FRACTION = 0.32
+
+    def _canvas_box(
+        self, bounds: tuple[int, int, int, int] | None
+    ) -> tuple[tuple[int, int, int, int] | None, str | None]:
+        """Resolve normalized canvas bounds to pixels, or the default box.
+
+        Returns ``(box, error)``: ``error`` is set when the caller named a box
+        that cannot hold a glyph, so a bad target is reported instead of being
+        silently replaced by the default region.
+        """
+        if bounds:
+            if len(bounds) != 4:
+                return None, f"Canvas bounds must be [left, top, right, bottom], got {bounds}."
+            nx1, ny1 = self._to_px(int(bounds[0]), int(bounds[1]))
+            nx2, ny2 = self._to_px(int(bounds[2]), int(bounds[3]))
+            left, right = sorted((nx1, nx2))
+            top, bottom = sorted((ny1, ny2))
+            if right - left < 24 or bottom - top < 24:
+                return None, (
+                    f"Canvas bounds {list(bounds)} (normalized) resolve to a"
+                    f" {right - left}x{bottom - top}px box, too small to write in."
+                )
+            return (left, top, right, bottom), None
+
+        width, height = self._dims()
+        side = max(64, int(min(width, height) * self._DEFAULT_CANVAS_FRACTION))
+        cx, cy = width // 2, height // 2
+        return (cx - side // 2, cy - side // 2, cx + side // 2, cy + side // 2), None
+
+    async def _canvas_signature(self, box: tuple[int, int, int, int]) -> bytes | None:
+        """Grayscale pixels of the canvas region, for the blank-canvas check.
+
+        Best effort: verification must never fail an action whose strokes were
+        already drawn, so an unreadable screenshot simply reports "unknown".
+        """
+        try:
+            raw = await self.controller.take_screenshot()
+            with Image.open(io.BytesIO(base64.b64decode(raw))) as image:
+                return image.crop(box).convert("L").tobytes()
+        except (OSError, ValueError, AttributeError) as exc:
+            logger.debug(f"Canvas ink check skipped: {exc}")
+            return None
+
+    async def _draw_strokes(self, scripts: list[str], total_points: int) -> tuple[bool, str | None]:
+        """Run the motion scripts on the device. Returns ``(ok, error)``.
+
+        Device-level exceptions propagate: this module's convention is that the
+        caller owns the ``Error during handwrite: {e}`` wrapping.
+        """
+        device = get_adb_device(self.ctx)
+        if device is None:
+            return False, "No ADB device connection is available for handwriting."
+
+        loop = asyncio.get_running_loop()
+        # Measured on a Pixel-class device: ~50ms per injected point, because every
+        # event is one `input` process on the device. Budget 2.4x that plus overhead.
+        deadline = loop.time() + 20.0 + 0.12 * total_points
+        for index, script in enumerate(scripts, start=1):
+            remaining = deadline - loop.time()
+            if remaining <= 0:
+                return False, f"Handwriting ran out of time before script {index}/{len(scripts)}."
+            try:
+                await asyncio.wait_for(asyncio.to_thread(device.shell, script), timeout=remaining)
+            except TimeoutError:
+                return False, f"Handwriting timed out on script {index}/{len(scripts)}."
+            except OSError as exc:
+                return False, f"Handwriting failed on script {index}/{len(scripts)}: {exc}"
+        return True, None
+
+    async def handwrite(
+        self,
+        text: str,
+        bounds: tuple[int, int, int, int] | None = None,
+        source: str = "auto",
+        point_interval_ms: int = 0,
+        stroke_gap_ms: int = DEFAULT_STROKE_GAP_MS,
+    ) -> ActionResult:
+        """Write ``text`` onto a canvas as real pen strokes.
+
+        A handwriting canvas ignores typed text, and a pen-only canvas ignores
+        finger events: ``source="auto"`` injects pen (stylus) events and retries
+        with finger events when the canvas stays blank, so the caller does not
+        have to know which kind of canvas it is facing.
+        """
+        box, box_error = self._canvas_box(bounds)
+        if box is None:
+            return ActionResult.failure("handwrite", box_error or "", code=ActionCode.INVALID_ARGS)
+
+        try:
+            strokes = render_text(text, box)
+            scripts = build_motion_scripts(
+                strokes,
+                source=source,
+                point_interval_ms=point_interval_ms,
+                stroke_gap_ms=stroke_gap_ms,
+            )
+        except HandwritingError as exc:
+            return ActionResult.failure("handwrite", str(exc), code=ActionCode.INVALID_ARGS)
+
+        total_points = sum(len(stroke) for stroke in strokes)
+        if not scripts:
+            return ActionResult.failure(
+                "handwrite", f"Nothing to write for '{text}'.", code=ActionCode.INVALID_ARGS
+            )
+
+        verify = source == "auto"
+        before = await self._canvas_signature(box) if verify else None
+        attempt = "stylus" if source == "auto" else source
+
+        ok, error = await self._draw_strokes(scripts, total_points)
+        if not ok:
+            return ActionResult.failure("handwrite", error or "Handwriting failed.")
+
+        if verify and before is not None:
+            after = await self._canvas_signature(box)
+            if after is not None and after == before:
+                # The canvas ignored pen events: some canvases are finger-only.
+                logger.info("Handwriting left the canvas unchanged; retrying with finger events.")
+                finger_scripts = build_motion_scripts(
+                    strokes,
+                    source="touchscreen",
+                    point_interval_ms=point_interval_ms,
+                    stroke_gap_ms=stroke_gap_ms,
+                )
+                ok, error = await self._draw_strokes(finger_scripts, total_points)
+                if not ok:
+                    return ActionResult.failure("handwrite", error or "Handwriting failed.")
+                attempt = "touchscreen"
+                after = await self._canvas_signature(box)
+                if after is not None and after == before:
+                    return ActionResult.failure(
+                        "handwrite",
+                        f"Wrote '{text}' but the canvas did not change with pen or finger"
+                        " events. Check that the target box is the writing area (and that"
+                        " the canvas is ready for input), then retry.",
+                    )
+
+        return ActionResult.success(
+            "handwrite",
+            f"Hand-wrote '{text}' as {len(strokes)} stroke(s) / {total_points} pen"
+            f" points into {list(box)}px using {attempt} events.",
+            duration_ms=int(0.05 * total_points),
         )
 
     async def press_key(self, key: str) -> ActionResult:

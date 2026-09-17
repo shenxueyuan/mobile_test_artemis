@@ -45,6 +45,7 @@ from artemis.mcp.action_specs import exception_prefix
 from artemis.mcp.action_session import ActionSession, get_action_session
 from artemis.mcp.action_types import ActionCode, ActionResult
 from artemis.mcp.actuators.adb import AdbActuator
+from artemis.mcp.handwriting import DEFAULT_STROKE_GAP_MS
 from artemis.agents.validator.tool_declarations import (
     ToolExecutionResult,
     normalize_coordinate_target,
@@ -354,6 +355,9 @@ class McpActionExecutor:
         if raw_name == "swipe":
             return self._translate_swipe(args, state, index_elements=index_elements)
 
+        if raw_name == "handwrite":
+            return self._translate_handwrite(args, state, index_elements=index_elements)
+
         if raw_name == "press_key":
             return "press_key", {"key": args.get("key", "BACK")}, None, {}
 
@@ -620,6 +624,91 @@ class McpActionExecutor:
             )
 
         raise _ArgError(f"Error during swipe: Invalid direction: {args}")
+
+    def _resolve_bounds(
+        self,
+        index: int,
+        label: str,
+        state: Any,
+        *,
+        index_elements: list[dict[str, Any]] | None = None,
+    ) -> tuple[list[int], dict[str, Any]]:
+        """Maps an element index onto its normalized 0-1000 *bounds*.
+
+        Handwriting fills a region, not a point, so an indexed canvas keeps its
+        full box instead of collapsing to the element's center.
+        """
+        elements = self._index_elements(state, index_elements)
+        if not 1 <= index <= len(elements):
+            hint = (
+                " The list is empty on this screen."
+                if not elements
+                else f" Active index range is 1 to {len(elements)}."
+            )
+            raise _ArgError(
+                f"Error during {label}: Invalid target index {index}.{hint} Use the"
+                " writing box shown in the Visible UI Elements list, or explicit"
+                " [left, top, right, bottom] bounds in 0-1000 scale with a"
+                " target_description."
+            )
+        element = elements[index - 1]
+        width, height = self._screen_size()
+        bounds = element.get("bounds")
+        if not (isinstance(bounds, (list, tuple)) and len(bounds) == 4):
+            raise _ArgError(f"Error during {label}: element [{index}] has no usable bounds.")
+        norm = [
+            int(max(0, min(1000, round(float(bounds[0]) * 1000 / max(1, width))))),
+            int(max(0, min(1000, round(float(bounds[1]) * 1000 / max(1, height))))),
+            int(max(0, min(1000, round(float(bounds[2]) * 1000 / max(1, width))))),
+            int(max(0, min(1000, round(float(bounds[3]) * 1000 / max(1, height))))),
+        ]
+        recorded = {
+            "target_text": element.get("text"),
+            "target_bounds": norm,
+            "target_resource_id": element.get("resource_id"),
+            "target_class": element.get("class"),
+        }
+        return norm, recorded
+
+    def _translate_handwrite(
+        self,
+        args: dict[str, Any],
+        state: Any,
+        *,
+        index_elements: list[dict[str, Any]] | None = None,
+    ) -> tuple[str, dict[str, Any], Any, dict[str, Any]]:
+        """Resolve the canvas region for handwrite: element index, bounds, or default."""
+        raw = args.get("target")
+        bounds: list[int] | None = None
+        recorded: dict[str, Any] = {}
+        if isinstance(raw, bool):
+            raw = None
+        if isinstance(raw, (int, float)):
+            bounds, recorded = self._resolve_bounds(
+                int(raw), "handwrite", state, index_elements=index_elements
+            )
+        elif isinstance(raw, (list, tuple)) and len(raw) == 4:
+            recorded = self._require_description(args, "handwrite")
+            bounds = [int(max(0, min(1000, round(float(v))))) for v in raw]
+        elif raw is not None:
+            raise _ArgError(
+                f"Error during handwrite: Invalid target format: {raw!r}. Use the"
+                " writing box's element index from the Visible UI Elements list, or"
+                " [left, top, right, bottom] bounds in 0-1000 scale with a"
+                " target_description."
+            )
+        return (
+            "handwrite",
+            {
+                "text": args.get("text", ""),
+                "bounds": bounds,
+                "source": args.get("source") or "auto",
+                "point_interval_ms": args.get("point_interval_ms") or 0,
+                "stroke_gap_ms": args.get("stroke_gap_ms") or DEFAULT_STROKE_GAP_MS,
+            },
+            None,
+            recorded,
+        )
 
     # --- Non-device tools (stay agent-side) ------------------------------------------
 

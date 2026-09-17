@@ -67,6 +67,7 @@ from mcp.types import CallToolResult
 from pydantic import Field, create_model
 
 from artemis.core.tool_declaration import ToolDeclaration
+from artemis.mcp.handwriting import DEFAULT_STROKE_GAP_MS
 from artemis.mcp.action_types import ActionResult
 
 __all__ = [
@@ -210,6 +211,18 @@ async def _wire_swipe(actuator: Any, a: dict[str, Any]) -> ActionResult:
     start, end = a["start"], a["end"]
     return await actuator.swipe(
         (int(start[0]), int(start[1])), (int(end[0]), int(end[1])), a["duration_ms"]
+    )
+
+
+async def _wire_handwrite(actuator: Any, a: dict[str, Any]) -> ActionResult:
+    bounds = a.get("bounds")
+    resolved = tuple(int(v) for v in bounds) if bounds else None
+    return await actuator.handwrite(
+        a["text"],
+        resolved,
+        source=a.get("source") or "auto",
+        point_interval_ms=a.get("point_interval_ms") or 0,
+        stroke_gap_ms=a.get("stroke_gap_ms") or DEFAULT_STROKE_GAP_MS,
     )
 
 
@@ -561,6 +574,97 @@ _SPECS: tuple[ActionSpec, ...] = (
         ),
     ),
     ActionSpec(
+        name="handwrite",
+        operator=OperatorDialect(
+            description=(
+                "[ACTION] Hand-write text on a drawing canvas with real pen strokes.\n"
+                "\n"
+                'Use this INSTEAD of input_text whenever the screen asks for handwriting: a writing box, a stroke-order hint, a dictation / 默写 / 描红 exercise, or a "get your stylus ready" prompt. Those canvases ignore typed text, and some of them accept pen (stylus) input only.\n'
+                "The stroke trajectory comes from real stroke data, so each character is written in the correct stroke order with the right shape. Never invent stroke coordinates yourself, and never try to draw characters with a chain of swipes.\n"
+                "\n"
+                "Args:\n"
+                "    text: Text to write (e.g. '毯', '苹果'). Every character must exist in the bundled stroke database; Chinese characters do.\n"
+                "    target: Canvas element index from the Visible UI Elements list (e.g. 7), or explicit canvas bounds [left, top, right, bottom] in 0-1000 scale. Omit to write into a centered square region of the screen.\n"
+                "    target_description: What the canvas is, in a few words (e.g. 'dictation writing box'). REQUIRED when target is explicit bounds; ignored for an element index.\n"
+                "    source: Input source: 'auto' (default: pen events, retried as finger events when the canvas stays blank), 'stylus' (pen-only canvas), or 'touchscreen' (finger-only canvas).\n"
+                "    stroke_gap_ms: Pause between strokes in milliseconds (default 120).\n"
+                "    point_interval_ms: Extra delay between points in milliseconds (default 0: as fast as the device allows)."
+            ),
+            params=(
+                ParamSpec(
+                    "text",
+                    str,
+                    "Text to write, e.g. '毯' or '苹果'. Each character must be in"
+                    " the bundled stroke database.",
+                ),
+                ParamSpec(
+                    "target",
+                    int | list[int] | None,
+                    "Canvas element index from the Visible UI Elements list (e.g. 7),"
+                    " or explicit canvas bounds [left, top, right, bottom] in 0-1000"
+                    " scale. Omit for a centered square region.",
+                    required=False,
+                    default=None,
+                ),
+                ParamSpec(
+                    "target_description",
+                    str | None,
+                    "What the canvas is, in a few words (e.g. 'dictation writing"
+                    " box'). REQUIRED when target is explicit bounds; ignored for an"
+                    " element index.",
+                    required=False,
+                    default=None,
+                ),
+                ParamSpec(
+                    "source",
+                    Literal["auto", "stylus", "touchscreen"] | None,
+                    "Input source: 'auto' (pen events, retried as finger events when"
+                    " the canvas stays blank), 'stylus' (pen-only canvas), or"
+                    " 'touchscreen' (finger-only canvas).",
+                    required=False,
+                    default=None,
+                ),
+                ParamSpec(
+                    "stroke_gap_ms",
+                    int | None,
+                    "Pause between strokes in milliseconds (default 120).",
+                    required=False,
+                    default=None,
+                ),
+                ParamSpec(
+                    "point_interval_ms",
+                    int | None,
+                    "Extra delay between points in milliseconds (default 0: as fast"
+                    " as the device allows).",
+                    required=False,
+                    default=None,
+                ),
+            ),
+        ),
+        wire=WireDialect(
+            description=(
+                "Hand-write text as pen strokes, inside optional 0-1000 normalized"
+                " [left, top, right, bottom] bounds."
+            ),
+            params=(
+                ParamSpec("text", str),
+                ParamSpec("bounds", list[int] | None, required=False, default=None),
+                ParamSpec("source", str, required=False, default="auto"),
+                ParamSpec("point_interval_ms", int, required=False, default=0),
+                ParamSpec("stroke_gap_ms", int, required=False, default=DEFAULT_STROKE_GAP_MS),
+            ),
+            bind=_wire_handwrite,
+        ),
+        differences=(
+            "target_description: recorded, never sent to the wire; required for"
+            " explicit bounds only. The agent's target (element index or bounds) is"
+            " resolved client-side into normalized 'bounds'; the wire receives"
+            " resolved bounds, or null for the default centered region. Stroke"
+            " timing knobs exist in both dialects because they change how the app"
+            " sees the gesture, not just how it is spelled."
+        ),
+    ),
+    ActionSpec(
         name="press_key",
         operator=OperatorDialect(
             description=(
@@ -686,6 +790,7 @@ OPERATOR_SHELL_ORDER: tuple[str, ...] = (
     "click",
     "input_text",
     "swipe",
+    "handwrite",
     "press_key",
     "manage_app",
     "wait_for_delay",
@@ -699,6 +804,7 @@ EXCEPTION_PREFIXES: dict[str, str] = {
     "long_press": "Error during long press",
     "input_text": "Error during input text",
     "swipe": "Error during swipe",
+    "handwrite": "Error during handwrite",
     "press_key": "Error during press_key",
     "manage_app": "Error during manage_app",
     "wait_for_delay": "Error during wait_for_delay",

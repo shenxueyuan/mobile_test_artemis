@@ -347,3 +347,75 @@ def test_click_sequence_accepts_a_serialized_pair_list():
         _state(),
     )
     assert wire_args["sequence"] == [[500, 600], [10, 10]]
+
+
+# --- Handwriting: a region target, not a point ---------------------------------------
+
+
+def test_handwrite_index_resolves_to_the_canvas_bounds():
+    """A writing box is a region, so the index keeps its full bounds (not a center)."""
+    executor = _make_executor()
+    wire_name, wire_args, _, recorded = executor._translate(
+        "handwrite", {"text": "毯", "target": 1}, _indexed_state()
+    )
+
+    assert wire_name == "handwrite"
+    assert wire_args == {
+        "text": "毯",
+        "bounds": [37, 480, 963, 560],
+        "source": "auto",
+        "point_interval_ms": 0,
+        "stroke_gap_ms": 120,
+    }
+    assert recorded["target_bounds"] == [37, 480, 963, 560]
+    assert recorded["target_text"] == "Wi-Fi"
+    assert "target_description" not in recorded
+
+
+def test_handwrite_without_a_target_leaves_the_region_to_the_actuator():
+    executor = _make_executor()
+    _, wire_args, _, recorded = executor._translate("handwrite", {"text": "苹果"}, _state())
+
+    assert wire_args["bounds"] is None
+    assert recorded == {}
+
+
+def test_handwrite_bounds_target_requires_a_description():
+    executor = _make_executor()
+    with pytest.raises(_ArgError):
+        executor._translate("handwrite", {"text": "毯", "target": [100, 200, 400, 600]}, _state())
+
+    _, wire_args, _, recorded = executor._translate(
+        "handwrite",
+        {"text": "毯", "target": [100, 200, 400, 600], "target_description": "writing box"},
+        _state(),
+    )
+    assert wire_args["bounds"] == [100, 200, 400, 600]
+    assert recorded["target_description"] == "writing box"
+
+
+def test_handwrite_carries_the_source_and_timing_knobs():
+    executor = _make_executor()
+    _, wire_args, _, _ = executor._translate(
+        "handwrite",
+        {
+            "text": "毯",
+            "source": "touchscreen",
+            "point_interval_ms": 30,
+            "stroke_gap_ms": 200,
+        },
+        _state(),
+    )
+
+    assert wire_args["source"] == "touchscreen"
+    assert wire_args["point_interval_ms"] == 30
+    assert wire_args["stroke_gap_ms"] == 200
+
+
+def test_handwrite_rejects_a_target_that_is_neither_index_nor_bounds():
+    executor = _make_executor()
+    with pytest.raises(_ArgError, match="Invalid target format"):
+        executor._translate("handwrite", {"text": "毯", "target": "the canvas"}, _state())
+
+    with pytest.raises(_ArgError, match="Invalid target index"):
+        executor._translate("handwrite", {"text": "毯", "target": 7}, _indexed_state())
