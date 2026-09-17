@@ -20,12 +20,19 @@ import pytest
 from apps.admin_console.services.model_service import ModelService
 
 
+def _configured_operator_provider() -> str:
+    """The provider the shipped config resolves the operator to."""
+    from artemis.config import parse_llm_config
+
+    return str(parse_llm_config().operator.provider)
+
+
 def test_get_active_model_info_pro_architecture():
     """Verify that pro profile returns Pro architecture while keeping real LLM model."""
     info = ModelService.get_active_model_info("pro")
     assert info["name"] == "Pro"
     assert info["architecture"] == "ARTEMIS Pro"
-    assert info["provider"] == "google"
+    assert info["provider"] == _configured_operator_provider()
     assert "id" in info
 
 
@@ -34,7 +41,7 @@ def test_get_active_model_info_flash_architecture():
     info = ModelService.get_active_model_info("flash")
     assert info["name"] == "Flash"
     assert info["architecture"] == "ARTEMIS Flash"
-    assert info["provider"] == "google"
+    assert info["provider"] == _configured_operator_provider()
 
 
 def test_resolve_session_profile_from_device_info():

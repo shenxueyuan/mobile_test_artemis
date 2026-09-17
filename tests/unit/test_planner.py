@@ -63,8 +63,12 @@ async def test_planner_validation():
 
 
 def test_planner_validation_node_defaults_to_lightweight_judge():
-    """Unconfigured planner_validation resolves to the same flash-lite default
-    as the pixel safety net (cheap, temperature 0)."""
+    """Unconfigured planner_validation resolves to the same cheap default
+    (temperature 0) as the pixel safety net.
+
+    On Google deployments that default is a Gemini flash-lite model; other
+    providers reuse the configured lightweight node (Hopper) instead.
+    """
     from artemis.config import get_default_llm_config
 
     llm_cfg = get_default_llm_config()
@@ -73,7 +77,10 @@ def test_planner_validation_node_defaults_to_lightweight_judge():
     assert node.model == safety_net.model
     assert node.provider == safety_net.provider
     assert node.temperature == 0.0
-    assert "lite" in node.model
+    if str(node.provider) == "google":
+        assert "lite" in node.model
+    else:
+        assert node.model == llm_cfg.utils.hopper.model
 
 
 if __name__ == "__main__":

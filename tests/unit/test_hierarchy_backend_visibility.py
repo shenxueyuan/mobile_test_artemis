@@ -148,9 +148,7 @@ async def test_connect_publishes_install_stage_and_registers_listener():
         stages = [c.args[0] for c in progress.call_args_list]
         assert stages == ["uiautomator", "helper_install", "uiautomator_ready", "hierarchy_backend"]
         install_msg = progress.call_args_list[1].args[1]
-        assert (
-            "first time" in install_msg and "v1.1.2" in install_msg and "3 seconds" in install_msg
-        )
+        assert "首次安装" in install_msg and "v1.1.2" in install_msg and "3 秒" in install_msg
 
         # A later fallback goes through the registered listener.
         progress.reset_mock()
