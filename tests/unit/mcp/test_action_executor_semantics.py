@@ -365,7 +365,7 @@ def test_handwrite_index_resolves_to_the_canvas_bounds():
         "bounds": [37, 480, 963, 560],
         "source": "auto",
         "point_interval_ms": 0,
-        "stroke_gap_ms": 120,
+        "stroke_gap_ms": 90,
     }
     assert recorded["target_bounds"] == [37, 480, 963, 560]
     assert recorded["target_text"] == "Wi-Fi"

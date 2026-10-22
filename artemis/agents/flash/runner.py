@@ -43,16 +43,24 @@ from dataclasses import dataclass, field
 import json
 from pathlib import Path
 import re
+import time
 import uuid
 
 from jinja2 import Template
+import httpx
 from langchain_core.messages import (
+    AIMessage,
     BaseMessage,
     HumanMessage,
     SystemMessage,
     ToolMessage,
 )
 
+from artemis.agents.flash.jev_decision import (
+    choose_navigation_action,
+    jev_api_key,
+    screen_signature,
+)
 from artemis.agents.flash.summarizer import VisualStepSummarizer, build_focus_context
 from artemis.agents.operator.prompts import REASONING_REMINDER, UserGuidance, render_user_guidance
 from artemis.agents.validator.tool_declarations import (
@@ -146,12 +154,14 @@ class FlashRunner:
             cfg = load_agent_config()
             self.max_turns = max_turns if max_turns is not None else cfg.flash.max_turns
             self.step_summarizer_cfg = cfg.flash.step_summarizer
+            self.jev_cfg = cfg.flash.jev
             self.memory_runtime_cfg = cfg.memory.runtime
             self.transcript_cfg = cfg.memory.transcript
             self.chunking_cfg = cfg.memory.chunking
         except Exception:
             self.max_turns = max_turns if max_turns is not None else 0
             self.step_summarizer_cfg = StepSummarizerConfig()
+            self.jev_cfg = None
             self.memory_runtime_cfg = MemoryRuntimeConfig()
             self.transcript_cfg = MemoryTranscriptConfig()
             self.chunking_cfg = None
@@ -596,6 +606,8 @@ class FlashRunner:
         post_img_bytes = exec_result.screenshot_bytes
         if post_img_bytes or name not in action_names:
             return post_img_bytes
+        if state is not None:
+            state.fast_hierarchy_ok = False
         try:
             obs, screenshot_bytes = await observe(self.ctx, self.controller, settle_ms=0)
         except Exception as shot_err:
@@ -610,6 +622,7 @@ class FlashRunner:
         if not exec_result.screenshot_path and obs.screenshot_path:
             exec_result.screenshot_path = obs.screenshot_path
         if state is not None:
+            state.fast_hierarchy_ok = obs.hierarchy_ok
             if obs.hierarchy_ok:
                 state.indexed_points = [el["center"] for el in obs.elements]
                 state.indexed_elements = obs.elements
@@ -1034,6 +1047,12 @@ class FlashRunner:
 
     @trace(type="agent", name="FlashRunner")
     async def run(self, state: State) -> dict:
+        if self.jev_cfg is not None and self.jev_cfg.enabled and jev_api_key(self.jev_cfg):
+            async with httpx.AsyncClient(timeout=self.jev_cfg.timeout_seconds) as client:
+                return await self._run_loop(state, jev_client=client)
+        return await self._run_loop(state)
+
+    async def _run_loop(self, state: State, jev_client: httpx.AsyncClient | None = None) -> dict:
         limit = self.turn_limit
         logger.info(
             f"Starting Artemis Flash reactive loop for goal: {self.goal}"
@@ -1056,6 +1075,10 @@ class FlashRunner:
         current_xml_list = xml_list
         previous_turn: _TurnRecord | None = None
         pending_notices: list[str] = []
+        fast_steps = 0
+        fast_previous_screen: tuple | None = None
+        recent_fast_actions: list[str] = []
+        fast_disabled = False
 
         while limit is None or turns < limit:
             turns += 1
@@ -1065,6 +1088,9 @@ class FlashRunner:
                 self.ctx.data_engine.allocate_step_id()
 
             # Commit the previous turn: its step ids and outcomes exist now.
+            previous_action_failed = (
+                previous_turn is not None and previous_turn.result() is not None
+            )
             self._commit_turn(ledger, previous_turn)
             previous_turn = None
 
@@ -1073,9 +1099,12 @@ class FlashRunner:
             injected, injected_guidance = await self._read_injected_instruction(
                 ledger.elapsed_label()
             )
+            if injected:
+                fast_disabled = True
 
             # Tool restriction on the final turn (bounded loops only)
             is_final = limit is not None and turns == limit
+            has_pending_notices = bool(pending_notices)
             tail = self._build_tail(
                 ledger,
                 turns,
@@ -1095,7 +1124,74 @@ class FlashRunner:
             turn_base = len(messages) - 1
             current_tools = report_only_tools if is_final else tools_declaration
 
-            response = await self._invoke_model(llm, current_tools, messages)
+            response = None
+            decision_source = "operator"
+            if (
+                self.jev_cfg is not None
+                and self.jev_cfg.enabled
+                and not fast_disabled
+                and not previous_action_failed
+                and turns > 1
+                and not is_final
+                and not injected
+                and not has_pending_notices
+                and fast_steps < self.jev_cfg.max_consecutive_steps
+                and "click" in {tool.name for tool in current_tools}
+                and isinstance(getattr(state, "indexed_elements", None), list)
+                and state.fast_hierarchy_ok
+                and current_pre_screenshot_bytes is not None
+            ):
+                current_screen = screen_signature(state.indexed_elements)
+                if current_screen and (
+                    fast_previous_screen is None or current_screen != fast_previous_screen
+                ):
+                    index, decision_source, elapsed = await choose_navigation_action(
+                        self.goal,
+                        state.indexed_elements,
+                        self.jev_cfg,
+                        recent_actions=recent_fast_actions,
+                        client=jev_client,
+                    )
+                    logger.info(
+                        f"Flash decision={decision_source} duration_ms={elapsed * 1000:.1f}"
+                    )
+                    if self.ctx.data_engine:
+                        self.ctx.data_engine.record_trace(
+                            type="fast_decision",
+                            name="FlashJev",
+                            payload={
+                                "source": decision_source,
+                                "duration_ms": round(elapsed * 1000, 1),
+                                "selected_index": index,
+                            },
+                            step_id=self.ctx.data_engine.current_step_id,
+                            status="success",
+                        )
+                    if index is not None:
+                        response = AIMessage(
+                            content=f"Selected visible navigation element [{index}] via {decision_source}.",
+                            tool_calls=[
+                                {
+                                    "name": "click",
+                                    "args": {"target": index},
+                                    "id": str(uuid.uuid4()),
+                                }
+                            ],
+                        )
+                        fast_previous_screen = current_screen
+                        recent_fast_actions.append(
+                            str(state.indexed_elements[index - 1].get("text", ""))[:120]
+                        )
+                        fast_steps += 1
+            if response is None:
+                decision_source = "operator"
+                started = time.perf_counter()
+                response = await self._invoke_model(llm, current_tools, messages)
+                logger.info(
+                    f"Flash decision=operator duration_ms={(time.perf_counter() - started) * 1000:.1f}"
+                )
+                fast_steps = 0
+                fast_previous_screen = None
 
             if response is None:
                 break
@@ -1107,19 +1203,27 @@ class FlashRunner:
             native_text = self._extract_response_thinking(response)
 
             # Extract token usage metadata from response
-            step_token_usage, measured = self._resolve_token_usage(response, messages, raw_text)
+            if decision_source == "operator":
+                step_token_usage, measured = self._resolve_token_usage(response, messages, raw_text)
+            else:
+                step_token_usage, measured = (
+                    {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+                    False,
+                )
             # The ledger's compaction thresholds read the runner's own prompt
             # size, never the session-wide meter (which any agent overwrites).
             # The prompt as sent (``messages`` minus the just-appended reply)
             # rides along so the ledger can calibrate its chars-per-token
             # ratio — only from a provider measurement, never from the
             # estimate (same as the Pro operator).
-            ledger.record_prompt_tokens(
-                step_token_usage.get("prompt_tokens"),
-                messages=messages[:-1] if measured else None,
-            )
+            if decision_source == "operator":
+                ledger.record_prompt_tokens(
+                    step_token_usage.get("prompt_tokens"),
+                    messages=messages[:-1] if measured else None,
+                )
 
-            self._record_llm_trace(step_token_usage, raw_text)
+            if decision_source == "operator":
+                self._record_llm_trace(step_token_usage, raw_text)
 
             tool_calls = self._resolve_tool_calls(response, raw_text)
 

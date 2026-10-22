@@ -64,13 +64,23 @@ STROKE_DB_NAME = "strokes.db"
 GLYPH_WIDTH = 1024.0
 GLYPH_HEIGHT = 900.0
 
-#: Points injected per stroke. The stored medians are sparse (3-8 points); the
-#: pen needs a dense path, and the device interpolates between events anyway.
-DEFAULT_POINTS_PER_STROKE = 22
+#: Canvas pixels of path length covered by one injected point. Strokes are
+#: sampled proportional to their arc length instead of a fixed count: a short
+#: dot only needs a few spread-out points while a long hooked stroke keeps
+#: near-original density so its corners survive. Each point costs one ``input``
+#: process (~50ms); ~12px spacing cuts the total to roughly a third of the old
+#: fixed-22 budget on typical Tianzi-grid cells.
+DEFAULT_POINT_SPACING_PX = 12.0
+#: Bounds for the proportional sampling: dots still get a few real points and
+#: no stroke exceeds the density the previous fixed count provided.
+MIN_POINTS_PER_STROKE = 5
+MAX_POINTS_PER_STROKE = 22
+#: Dense path each stroke is evaluated on before proportional resampling.
+_DENSE_SAMPLES = 64
 #: Fraction of the canvas cell kept clear on each side.
 DEFAULT_PADDING = 0.10
 #: Pause between strokes so the app closes one stroke before the next begins.
-DEFAULT_STROKE_GAP_MS = 120
+DEFAULT_STROKE_GAP_MS = 90
 #: Roughly the largest shell script to hand to one ``adb shell`` invocation.
 _MAX_SCRIPT_CHARS = 4000
 
@@ -257,13 +267,16 @@ def render_text(
     text: str,
     box: tuple[int, int, int, int],
     *,
-    points_per_stroke: int = DEFAULT_POINTS_PER_STROKE,
+    point_spacing_px: float = DEFAULT_POINT_SPACING_PX,
     padding: float = DEFAULT_PADDING,
 ) -> list[list[tuple[int, int]]]:
     """Render ``text`` as pixel-space strokes inside ``box`` (pixel bounds).
 
     Characters are laid out left to right, one cell each. Strokes keep their
     writing order, so a canvas that checks stroke order sees the real thing.
+    Each stroke is sampled proportional to its on-canvas arc length (one point
+    per ``point_spacing_px``, between ``MIN_POINTS_PER_STROKE`` and
+    ``MAX_POINTS_PER_STROKE``).
     """
     characters = [char for char in text if not char.isspace()]
     if not characters:
@@ -279,8 +292,11 @@ def render_text(
     strokes: list[list[tuple[int, int]]] = []
     for char, cell in zip(characters, _cell_boxes(box, len(characters), padding)):
         for median in _medians_for(char):
-            dense = _resample(_smooth(median), max(2, points_per_stroke))
-            strokes.append(_to_canvas(dense, cell))
+            dense = _to_canvas(_resample(_smooth(median), _DENSE_SAMPLES), cell)
+            length = sum(math.dist(a, b) for a, b in zip(dense, dense[1:]))
+            count = round(length / max(1.0, point_spacing_px))
+            count = max(MIN_POINTS_PER_STROKE, min(MAX_POINTS_PER_STROKE, count))
+            strokes.append(_resample(dense, count))
     return strokes
 
 

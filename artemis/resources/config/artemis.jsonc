@@ -140,6 +140,10 @@
     "flash": {
       "max_turns": 0, // Maximum reactive turns before stopping (0 = unlimited; history is bounded by transcript compression, not by a turn cap)
       "explorer_mode": "flash", // Explorer tier for the Flash runner: 'flash' | 'pro' | 'ultra' (see top-level "explorer")
+      // Opt-in text-only navigation decisions via Ofox; set OFOX_API_KEY in .env first.
+      "jev": { "enabled": false, "provider": "ofox", "model": "typesafe/jev-latest", "timeout_seconds": 2.5,
+               "confidence_threshold": 0.85, "minimum_probability_margin": 0.2,
+               "max_candidates": 10, "max_consecutive_steps": 3 },
       // 🧠 Step Summarizer: Asynchronous visual context compressor
       // Summarizes intermediate steps in background without blocking the runner,
       // replacing images only after strictly objective, high-density summaries are ready.

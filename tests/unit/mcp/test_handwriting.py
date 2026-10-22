@@ -45,7 +45,13 @@ def test_render_keeps_stroke_order_and_stays_inside_the_box():
     strokes = render_text("毯", BOX)
 
     assert len(strokes) == 12
-    assert all(len(stroke) == handwriting.DEFAULT_POINTS_PER_STROKE for stroke in strokes)
+    # Density is proportional to each stroke's arc length: bounded between MIN
+    # and MAX, and cheaper than the old fixed count on average.
+    assert all(
+        handwriting.MIN_POINTS_PER_STROKE <= len(stroke) <= handwriting.MAX_POINTS_PER_STROKE
+        for stroke in strokes
+    )
+    assert sum(len(stroke) for stroke in strokes) < 12 * handwriting.MAX_POINTS_PER_STROKE
     for stroke in strokes:
         for x, y in stroke:
             assert BOX[0] <= x <= BOX[2], f"{x} outside the canvas box"

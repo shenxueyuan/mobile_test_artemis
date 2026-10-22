@@ -756,6 +756,19 @@ class MemoryConfig(BaseModel):
     model_config = {"extra": "allow"}
 
 
+class JevFastConfig(BaseModel):
+    """Opt-in, bounded System One decisions for Flash navigation."""
+
+    enabled: bool = False
+    provider: Literal["ofox", "typesafe"] = "ofox"
+    model: str = "typesafe/jev-latest"
+    timeout_seconds: float = Field(default=2.5, gt=0, le=10)
+    confidence_threshold: float = Field(default=0.85, ge=0, le=1)
+    minimum_probability_margin: float = Field(default=0.2, ge=0, le=1)
+    max_candidates: int = Field(default=10, ge=2, le=20)
+    max_consecutive_steps: int = Field(default=3, ge=1, le=10)
+
+
 class FlashProfileConfig(BaseModel):
     """Configuration options specific to the ⚡ Flash execution profile (FlashRunner/ReactiveRunner)."""
 
@@ -773,6 +786,7 @@ class FlashProfileConfig(BaseModel):
         default="flash",
         description="Perception mode for Flash runner ('flash' for 1-shot detection).",
     )
+    jev: JevFastConfig = Field(default_factory=JevFastConfig)
     step_summarizer: StepSummarizerConfig = Field(
         default_factory=StepSummarizerConfig,
         description="Asynchronous visual context compressor settings.",

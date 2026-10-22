@@ -10,10 +10,10 @@
   // 端点与密钥配置在 .env：OPENAI_BASE_URL / OPENAI_API_KEY。
   "default": {
     "provider": "openai",
-    "model": "deepseek-v4.1-flash",
+    "model": "qwen3.5-flash",
     "fallback": {
       "provider": "openai",
-      "model": "deepseek-v4.1-flash"
+      "model": "qwen3.8-omni-flash"
     }
   },
 
@@ -79,10 +79,10 @@
     // agent.flash.explorer_mode 调成 "pro"/"ultra"（多轮 ReAct 定位，不依赖 ER 模型）。
     "object_detector": {
       "provider": "openai",
-      "model": "deepseek-v4.1-flash",
+      "model": "qwen3.5-flash",
       "fallback": {
         "provider": "openai",
-        "model": "deepseek-v4.1-flash"
+        "model": "qwen3.8-omni-flash"
       }
     },
 
@@ -99,10 +99,10 @@
 
     // 🔽 Hopper: Fast lightweight package name locator
     "hopper": {
-      "model": "deepseek-v4.1-flash",
+      "model": "qwen3.5-flash",
       "fallback": {
         "provider": "openai",
-        "model": "deepseek-v4.1-flash"
+        "model": "qwen3.8-omni-flash"
       }
     },
 
@@ -144,12 +144,16 @@
     "flash": {
       "max_turns": 0, // Maximum reactive turns before stopping (0 = unlimited; history is bounded by transcript compression, not by a turn cap)
       "explorer_mode": "flash", // Explorer tier for the Flash runner: 'flash' | 'pro' | 'ultra' (see top-level "explorer")
+      // Opt-in text-only navigation decisions via Ofox; set OFOX_API_KEY in .env first.
+      "jev": { "enabled": true, "provider": "ofox", "model": "typesafe/jev-latest", "timeout_seconds": 2.5,
+               "confidence_threshold": 0.85, "minimum_probability_margin": 0.2,
+               "max_candidates": 10, "max_consecutive_steps": 5 },
       // 🧠 Step Summarizer: Asynchronous visual context compressor
       // Summarizes intermediate steps in background without blocking the runner,
       // replacing images only after strictly objective, high-density summaries are ready.
       "step_summarizer": {
         "enabled": true, // Whether background step summarization is active
-        "model": "deepseek-v4.1-flash", // Lightweight model for fast background inference
+        "model": "qwen3.5-flash", // Lightweight model for fast background inference
         "prune_history_xml": true // Prune outdated heavy XML trees from historical steps
       }
     },
@@ -250,7 +254,7 @@
         // call each); milestone closes are exempt, the hard line waives it.
         "min_steps": 3,
         "target_source_tokens": 2000,
-        "model": "deepseek-v4.1-flash",
+        "model": "qwen3.5-flash",
         "max_chunks": 8
         // "max_eras": 8 // independent era cap; omitted = follows max_chunks
       },

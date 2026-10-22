@@ -103,6 +103,9 @@ class State(BaseModel):
         " containing text, bounds, class, and center coordinates.",
         take_last,
     ] = None
+    fast_hierarchy_ok: Annotated[
+        bool, "Whether the most recent observation has a fresh parsed UI hierarchy", take_last
+    ] = False
 
     # ── Turn products (previous turn's decisions & results) ──────────────
     current_step_id: Annotated[str | None, "Current step ID from data engine", take_last] = None

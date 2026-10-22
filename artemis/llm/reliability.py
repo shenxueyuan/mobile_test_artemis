@@ -67,16 +67,27 @@ class Failure:
 
 def extract_status_code(error: BaseException) -> int | None:
     """Best-effort extraction of an HTTP-ish status code from an exception."""
-    code = getattr(error, "code", None) or getattr(error, "status_code", None)
-    try:
-        return int(code) if code is not None else None
-    except (TypeError, ValueError):
-        return None
+    # Some OpenAI-compatible SDKs set ``code`` to a string like
+    # "AccessDenied.Unpurchased" while ``status_code`` still carries HTTP 403.
+    for code in (getattr(error, "status_code", None), getattr(error, "code", None)):
+        try:
+            if code is not None:
+                return int(code)
+        except (TypeError, ValueError):
+            continue
+    return None
 
 
 _RATE_LIMIT_MARKERS = ("rate limit", "quota", "resource_exhausted")
 _UNAVAILABLE_MARKERS = ("unavailable", "overloaded", "high demand", "service unavailable")
-_AUTH_MARKERS = ("unauthorized", "forbidden", "api key", "credential")
+_AUTH_MARKERS = (
+    "unauthorized",
+    "forbidden",
+    "api key",
+    "credential",
+    "access to model denied",
+    "accessdenied.unpurchased",
+)
 # "deadline exceeded"/"deadline_exceeded" cover google-genai SDK timeouts that
 # surface without an HTTP status code attached.
 _TIMEOUT_MARKERS = ("timed out", "timeout", "deadline exceeded", "deadline_exceeded")

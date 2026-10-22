@@ -581,13 +581,14 @@ _SPECS: tuple[ActionSpec, ...] = (
                 "\n"
                 'Use this INSTEAD of input_text whenever the screen asks for handwriting: a writing box, a stroke-order hint, a dictation / 默写 / 描红 exercise, or a "get your stylus ready" prompt. Those canvases ignore typed text, and some of them accept pen (stylus) input only.\n'
                 "The stroke trajectory comes from real stroke data, so each character is written in the correct stroke order with the right shape. Never invent stroke coordinates yourself, and never try to draw characters with a chain of swipes.\n"
+                "When the page shows several writing boxes (e.g. 田字格 per character), write ONE character per call into the currently highlighted empty box: bounds must tightly enclose that single box. If the box stays blank, tap it once to focus it, then retry with its real bounds read from the UI elements list.\n"
                 "\n"
                 "Args:\n"
                 "    text: Text to write (e.g. '毯', '苹果'). Every character must exist in the bundled stroke database; Chinese characters do.\n"
                 "    target: Canvas element index from the Visible UI Elements list (e.g. 7), or explicit canvas bounds [left, top, right, bottom] in 0-1000 scale. Omit to write into a centered square region of the screen.\n"
                 "    target_description: What the canvas is, in a few words (e.g. 'dictation writing box'). REQUIRED when target is explicit bounds; ignored for an element index.\n"
                 "    source: Input source: 'auto' (default: pen events, retried as finger events when the canvas stays blank), 'stylus' (pen-only canvas), or 'touchscreen' (finger-only canvas).\n"
-                "    stroke_gap_ms: Pause between strokes in milliseconds (default 120).\n"
+                "    stroke_gap_ms: Pause between strokes in milliseconds (default 90).\n"
                 "    point_interval_ms: Extra delay between points in milliseconds (default 0: as fast as the device allows)."
             ),
             params=(
@@ -627,7 +628,7 @@ _SPECS: tuple[ActionSpec, ...] = (
                 ParamSpec(
                     "stroke_gap_ms",
                     int | None,
-                    "Pause between strokes in milliseconds (default 120).",
+                    "Pause between strokes in milliseconds (default 90).",
                     required=False,
                     default=None,
                 ),

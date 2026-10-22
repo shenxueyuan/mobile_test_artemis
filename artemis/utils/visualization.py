@@ -426,6 +426,9 @@ def format_minimal_list_with_elements(
                 "class": node.get("class"),
                 "resource_id": node.get("resource-id"),
                 "is_ocr": False,
+                "clickable": node.get("clickable") in (True, "true"),
+                "enabled": node.get("enabled") in (True, "true"),
+                "package": node.get("package"),
             }
             if not text.strip():
                 element["is_hint"] = True

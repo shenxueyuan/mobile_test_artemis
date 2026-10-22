@@ -176,6 +176,7 @@ async def capture_screenshot_and_parse_ui(
     ``State`` write-back (indexed points/elements) the agents rely on.
     """
     obs, screenshot_bytes = await observe(ctx, controller, settle_ms=0 if skip_settling else 400)
+    state.fast_hierarchy_ok = obs.ok and obs.hierarchy_ok
     if not obs.ok:
         return None, None, None
 

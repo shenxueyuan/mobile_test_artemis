@@ -100,6 +100,8 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: SecretStr | None = None
     XAI_API_KEY: SecretStr | None = None
     OPEN_ROUTER_API_KEY: SecretStr | None = None
+    OFOX_API_KEY: SecretStr | None = None
+    TYPESAFE_API_KEY: SecretStr | None = None
 
     # Google Cloud Vision OCR Authentication
     OCR_API_KEY: SecretStr | None = None
@@ -164,6 +166,8 @@ class Settings(BaseSettings):
             "ANTHROPIC_API_KEY",
             "XAI_API_KEY",
             "OPEN_ROUTER_API_KEY",
+            "OFOX_API_KEY",
+            "TYPESAFE_API_KEY",
             "OCR_API_KEY",
             "VISION_API_KEY",
             "API_KEY",

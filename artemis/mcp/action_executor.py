@@ -33,7 +33,9 @@ through ``ToolFailure`` or an explicit status.
 import ast
 import hashlib
 import json
+import re
 from pathlib import Path
+import time
 from typing import Any
 
 from artemis.core.tool_failure import ToolFailure, is_tool_failure
@@ -184,6 +186,7 @@ class McpActionExecutor:
                     # not a point).
                     target_coordinates = wire_args.get("target")
                 extension = raw_name not in (REQUIRED_ACTIONS | OPTIONAL_ACTIONS)
+                action_started = time.perf_counter()
 
                 if extension:
                     raw_result = await session.call_raw(wire_name, wire_args)
@@ -195,9 +198,16 @@ class McpActionExecutor:
                 else:
                     res = await session.call(wire_name, wire_args)
                     message = finalize(res) if finalize else res.message
+                action_ms = (time.perf_counter() - action_started) * 1000
 
                 if res.ok or self._observe_despite_failure(raw_name, res):
+                    observation_started = time.perf_counter()
                     obs = await session.observe(settle_ms=400)
+                    state.fast_hierarchy_ok = obs.ok and obs.hierarchy_ok
+                    logger.info(
+                        f"Device action={raw_name} action_ms={action_ms:.1f} "
+                        f"observe_ms={(time.perf_counter() - observation_started) * 1000:.1f}"
+                    )
                     if obs.ok:
                         shot_path = obs.screenshot_path
                         xml_list = obs.elements_text
@@ -210,9 +220,11 @@ class McpActionExecutor:
                             except Exception as read_err:
                                 logger.warning(f"Failed to read observed screenshot: {read_err}")
             except _ArgError as e:
+                state.fast_hierarchy_ok = False
                 res = ActionResult.failure(raw_name, str(e), code=ActionCode.INVALID_ARGS)
                 message = str(e)
             except Exception as e:
+                state.fast_hierarchy_ok = False
                 message = f"{exception_prefix(raw_name)}: {e}"
                 res = ActionResult.failure(raw_name, message, detail=repr(e))
 
@@ -690,6 +702,13 @@ class McpActionExecutor:
         elif isinstance(raw, (list, tuple)) and len(raw) == 4:
             recorded = self._require_description(args, "handwrite")
             bounds = [int(max(0, min(1000, round(float(v))))) for v in raw]
+        elif isinstance(raw, str) and raw.strip().isdigit():
+            bounds, recorded = self._resolve_bounds(
+                int(raw.strip()), "handwrite", state, index_elements=index_elements
+            )
+        elif isinstance(raw, str) and len(re.findall(r"-?\d+", raw)) == 4:
+            recorded = self._require_description(args, "handwrite")
+            bounds = [int(max(0, min(1000, int(v)))) for v in re.findall(r"-?\d+", raw)]
         elif raw is not None:
             raise _ArgError(
                 f"Error during handwrite: Invalid target format: {raw!r}. Use the"
