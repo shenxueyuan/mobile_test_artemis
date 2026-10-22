@@ -722,8 +722,11 @@ _SPECS: tuple[ActionSpec, ...] = (
             description=(
                 "[ACTION] Pause execution and wait for a specified duration in milliseconds.\n"
                 "\n"
-                "Use this whenever you need time to elapse—whether for UI loading, animations,\n"
-                "screen transitions, or longer scheduled delays and intervals specified in the task."
+                "Use this ONLY for genuinely required durations: a task-mandated wait, a visible\n"
+                "countdown timer, or a loading state that persisted across the previous observation.\n"
+                "Do NOT wait for routine post-action settling—page loads, taps, and navigation are\n"
+                "already covered by the natural turn latency plus the automatic re-observation\n"
+                "after every action; a blind wait just wastes a full turn."
             ),
             params=(
                 ParamSpec(
